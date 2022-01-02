@@ -59,8 +59,12 @@ public static class PSObjectExtensions
 
     public static void SetProperty(this PSObject psObject, string propertyName, object value)
     {
-        var property = psObject.Properties[propertyName] ?? new PSNoteProperty(propertyName, value);
-        property.Value = value;
+        var property = psObject.Properties[propertyName];
+        if (property != null)
+        {
+            psObject.Properties.Remove(propertyName);
+        }
+        psObject.Properties.Add(new PSNoteProperty(propertyName, value));
     }
 
     public static void SetPropertyIfMissing(this PSObject psObject, string propertyName, object value)

@@ -69,6 +69,17 @@ public class ItemTests
         complexChildren[1].Property<string>("ChildProp").Should().Be("child-value-2");
     }
 
+    [Fact]
+    public void ItemTypePropertyOverridesUnderlyingValue()
+    {
+        var item = new ItemWithCustomItemType("over", new
+        {
+            ItemType = "under"
+        });
+        var pipelineObject = item.ToPipelineObject(p => p.ToString());
+        pipelineObject.Properties["ItemType"].Value.Should().Be("over");
+    }
+
     public class TestItem : Item
     {
         public TestItem(ItemPath parentPath, PSObject underlyingObject) : base(parentPath, underlyingObject) {}
@@ -79,5 +90,17 @@ public class ItemTests
         public override bool IsContainer => false;
 
         public new T? Property<T>(string propertyName) => base.Property<T>(propertyName);
+    }
+
+    public class ItemWithCustomItemType : Item
+    {
+        public ItemWithCustomItemType(string itemType, object underlyingObject) : base(ItemPath.Root, underlyingObject)
+        {
+            ItemType = itemType;
+        }
+
+        public override string ItemName => "Test";
+        public override string ItemType { get; }
+        public override bool IsContainer => false;
     }
 }
