@@ -41,8 +41,8 @@ public abstract class Item<T> : IItem where T : class
     public PSObject ToPipelineObject(Func<ItemPath,string> pathResolver)
     {
         var psObject = UnderlyingObject is PSObject underlyingObject ? underlyingObject : new PSObject(UnderlyingObject);
-        psObject.TypeNames.Clear(); 
-        psObject.TypeNames.Add(TypeName);
+        psObject.SetTypeName(TypeName);
+        
         var itemNameProperty = psObject.Properties["ItemName"];
         if (itemNameProperty == null)
         {
@@ -90,7 +90,7 @@ public abstract class Item : Item<PSObject>
     {
     }
 
-    public override string ItemType => UnderlyingObject.TypeNames.First();
+    public override string TypeName => UnderlyingObject.TypeNames.First();
     
     protected T? Property<T>(string name)
     {

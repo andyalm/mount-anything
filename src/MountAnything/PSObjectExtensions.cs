@@ -40,4 +40,19 @@ public static class PSObjectExtensions
 
         return (T)Convert.ChangeType(rawValue, typeof(T));
     }
+
+    public static void SetTypeName(this PSObject psObject, string typeName)
+    {
+        // When choosing the right view, we only want powershell to pick the one we specified via the TypeName 
+        var otherTypeNames = psObject.TypeNames.Where(n => n != typeName).ToArray();
+        foreach (var otherTypeName in otherTypeNames)
+        {
+            psObject.TypeNames.Remove(otherTypeName);
+        }
+
+        if (!psObject.TypeNames.Contains(typeName))
+        {
+            psObject.TypeNames.Add(typeName);
+        }
+    }
 }
