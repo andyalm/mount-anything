@@ -38,5 +38,5 @@ jobs:
         run: dotnet nuget push $(ls src/MountAnything/bin/${{ env.Configuration }}/*.nupkg) -k ${{ secrets.NUGET_FEED_KEY }} -s https://api.nuget.org/v3/index.json
         
     environment:
-      name: nuget.ord
+      name: nuget.org
       url: https://nuget.org/packages/MountAnything
