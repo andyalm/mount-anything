@@ -85,6 +85,10 @@ public abstract class Item : Item<PSObject>
     protected Item(ItemPath parentPath, PSObject underlyingObject) : base(parentPath, underlyingObject)
     {
     }
+    
+    protected Item(ItemPath parentPath, object underlyingObject) : base(parentPath, new PSObject(underlyingObject))
+    {
+    }
 
     public override string ItemType => UnderlyingObject.TypeNames.First();
     

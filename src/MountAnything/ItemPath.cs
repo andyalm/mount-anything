@@ -43,6 +43,11 @@ public record struct ItemPath
         return Path.GetDirectoryName(path)!.Replace(@"\", Separator.ToString());
     }
 
+    public ItemPath Combine(ItemPath path)
+    {
+        return Combine(path.Parts);
+    }
+
     public ItemPath Combine(params string[] parts)
     {
         var combinedPath = Path.Combine(new[] { FullName }.Concat(parts).ToArray()).Replace(@"\", Separator.ToString());
