@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageVersion Condition="$(PackageVersion)==''">0.0.1-dev</PackageVersion>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/andyalm/mount-anything</RepositoryUrl>
+    <Authors>Andy Alm</Authors>
+    <PackageTags>powershell;mount;drive;psdrive;</PackageTags>
+    <Copyright>2022 Andy Alm</Copyright>
+    <Title>Mount Anything</Title>
+    <Description>A framework for building powershell providers to make it easy to navigate arbitrary API's as a hierarchical virtual filesystem of objects.</Description>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="6.3.0" />
+    <PackageReference Include="System.Management.Automation" Version="7.2.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
