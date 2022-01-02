@@ -18,8 +18,8 @@ jobs:
 
     env:
       Configuration: Release
-      GithubReleaseNotes: ${{ github.event.release.body }}
-      GithubReleaseTag: ${{ github.event.release.tag_name }}
+      PackageReleaseNotes: ${{ github.event.release.body }}
+      PackageReleaseTag: ${{ github.event.release.tag_name }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
