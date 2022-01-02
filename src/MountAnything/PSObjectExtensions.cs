@@ -43,16 +43,32 @@ public static class PSObjectExtensions
 
     public static void SetTypeName(this PSObject psObject, string typeName)
     {
-        // When choosing the right view, we only want powershell to pick the one we specified via the TypeName 
+        if (!psObject.TypeNames.Contains(typeName))
+        {
+            psObject.TypeNames.Add(typeName);
+        }
+        
+        // When choosing the right view, we only want powershell to pick the one we specified via the TypeName
+        // so we remove all others
         var otherTypeNames = psObject.TypeNames.Where(n => n != typeName).ToArray();
         foreach (var otherTypeName in otherTypeNames)
         {
             psObject.TypeNames.Remove(otherTypeName);
         }
+    }
 
-        if (!psObject.TypeNames.Contains(typeName))
+    public static void SetProperty(this PSObject psObject, string propertyName, object value)
+    {
+        var property = psObject.Properties[propertyName] ?? new PSNoteProperty(propertyName, value);
+        property.Value = value;
+    }
+
+    public static void SetPropertyIfMissing(this PSObject psObject, string propertyName, object value)
+    {
+        var property = psObject.Properties[propertyName];
+        if (property == null)
         {
-            psObject.TypeNames.Add(typeName);
+            psObject.Properties.Add(new PSNoteProperty(propertyName, value));
         }
     }
 }

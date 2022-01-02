@@ -42,22 +42,21 @@ public abstract class Item<T> : IItem where T : class
     {
         var psObject = UnderlyingObject is PSObject underlyingObject ? underlyingObject : new PSObject(UnderlyingObject);
         psObject.SetTypeName(TypeName);
+        psObject.SetPropertyIfMissing(nameof(ItemName), ItemName);
+        psObject.SetPropertyIfMissing("Name", ItemName);
+        psObject.SetProperty(nameof(ItemType), ItemType);
+        SetLinks(pathResolver, psObject);
         
-        var itemNameProperty = psObject.Properties["ItemName"];
-        if (itemNameProperty == null)
-        {
-            psObject.Properties.Add(new PSNoteProperty("ItemName", ItemName));
-        }
+        CustomizePSObject(psObject);
 
-        var nameProperty = psObject.Properties["Name"];
-        if (nameProperty == null)
-        {
-            psObject.Properties.Add(new PSNoteProperty("Name", ItemName));
-        }
-        psObject.Properties.Add(new PSNoteProperty("ItemType", ItemType));
+        return psObject;
+    }
+
+    private void SetLinks(Func<ItemPath, string> pathResolver, PSObject psObject)
+    {
         foreach (var link in Links)
         {
-            psObject.Properties.Add(new PSNoteProperty(link.Key, link.Value.ToPipelineObject(pathResolver)));
+            psObject.SetProperty(link.Key, link.Value.ToPipelineObject(pathResolver));
         }
 
         var linkObject = new PSObject();
@@ -70,12 +69,10 @@ public abstract class Item<T> : IItem where T : class
         {
             linkObject.Properties.Add(new PSNoteProperty(linkPath.Key, pathResolver(linkPath.Value)));
         }
-        psObject.Properties.Add(new PSNoteProperty(nameof(Links), linkObject));
-        CustomizePSObject(psObject);
 
-        return psObject;
+        psObject.Properties.Add(new PSNoteProperty(nameof(Links), linkObject));
     }
-    
+
     public ImmutableDictionary<string,IItem> Links { get; protected init; } = ImmutableDictionary<string, IItem>.Empty;
     public ImmutableDictionary<string,ItemPath> LinkPaths { get; protected init; } = ImmutableDictionary<string, ItemPath>.Empty;
 }

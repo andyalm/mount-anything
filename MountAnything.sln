@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MountAnything", "src\MountAnything\MountAnything.csproj", "{F4D9C793-0D36-41BF-A173-324237423663}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E8302017-CFB2-454F-B7CB-2BC54537E5F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MountAnything.Tests", "tests\MountAnything.Tests\MountAnything.Tests.csproj", "{D80D9453-212C-4D8F-8B74-E3B17A81ADEA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,12 @@ Global
 		{F4D9C793-0D36-41BF-A173-324237423663}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4D9C793-0D36-41BF-A173-324237423663}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4D9C793-0D36-41BF-A173-324237423663}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D80D9453-212C-4D8F-8B74-E3B17A81ADEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D80D9453-212C-4D8F-8B74-E3B17A81ADEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D80D9453-212C-4D8F-8B74-E3B17A81ADEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D80D9453-212C-4D8F-8B74-E3B17A81ADEA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D80D9453-212C-4D8F-8B74-E3B17A81ADEA} = {E8302017-CFB2-454F-B7CB-2BC54537E5F2}
 	EndGlobalSection
 EndGlobal
