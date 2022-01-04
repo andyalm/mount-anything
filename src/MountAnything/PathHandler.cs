@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 namespace MountAnything;
 
 public abstract class PathHandler : IPathHandler
@@ -88,8 +86,7 @@ public abstract class PathHandler : IPathHandler
 
     public virtual IEnumerable<IItem> GetChildItems(string filter)
     {
-        var pathMatcher = new Regex("^" + Regex.Escape(Path.Combine(filter).FullName).Replace(@"\*", ".*") + "$", RegexOptions.IgnoreCase);
         return GetChildItems(Freshness.Default)
-            .Where(i => pathMatcher.IsMatch(i.FullPath.FullName));
+            .Where(i => i.MatchesPattern(Path.Combine(filter)));
     }
 }

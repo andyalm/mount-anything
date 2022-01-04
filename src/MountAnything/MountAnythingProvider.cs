@@ -211,8 +211,9 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
     {
         Cache.SetItem(item);
         var providerPath = ToProviderPath(item.FullPath);
-        WriteDebug($"WriteItemObject<{item.TypeName}>(,{providerPath},{item.IsContainer})");
-        WriteItemObject(item.ToPipelineObject(ToFullyQualifiedProviderPath), providerPath, item.IsContainer);
+        var pipelineObject = item.ToPipelineObject(ToFullyQualifiedProviderPath);
+        WriteDebug($"WriteItemObject<{pipelineObject.TypeNames.First()}>({providerPath},{item.IsContainer})");
+        WriteItemObject(pipelineObject, providerPath, item.IsContainer);
     }
 
     private (IPathHandler Handler, ILifetimeScope Container) GetPathHandler(string path)
@@ -287,7 +288,8 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
         {
             WriteDebug($"{handler.GetType().Name}.ExpandPath({pattern})");
             return handler.GetChildItems(pattern)
-                .Select(i => i.FullPath.Parts.Length == 1 ? ToProviderPath(i.FullPath).Substring(1) : ToProviderPath(i.FullPath))
+                .Select(i => i.MatchingCacheablePath(itemPath))
+                .Select(p => p.Parts.Length == 1 ? ToProviderPath(p).Substring(1) : ToProviderPath(p))
                 .ToArray();
         }) ?? Array.Empty<string>();
         foreach (var expandedPath in returnValue)

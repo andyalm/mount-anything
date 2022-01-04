@@ -38,7 +38,7 @@ public class Router : IRoutable
         var resolver = GetResolver(path);
         var lifetimeScope = _rootContainer.Value.BeginLifetimeScope(resolver.ServiceRegistrations);
         var handler = (IPathHandler)lifetimeScope.Resolve(resolver.HandlerType,
-            new TypedParameter(typeof(ItemPath), path),
+            new NamedParameter(nameof(path), path),
             new TypedParameter(typeof(IPathHandlerContext), context));
 
         return (handler, lifetimeScope);

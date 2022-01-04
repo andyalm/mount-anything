@@ -5,14 +5,30 @@ namespace MountAnything;
 
 public interface IItem
 {
-    ItemPath ParentPath { get; }
     ItemPath FullPath { get; }
-    string ItemName { get; }
-    string ItemType { get; }
     bool IsContainer { get; }
-    string TypeName { get; }
-    IEnumerable<ItemPath> CacheablePaths { get; }
-    ImmutableDictionary<string, IItem> Links { get; }
-    ImmutableDictionary<string, ItemPath> LinkPaths { get; }
+
+    string ItemName => FullPath.Name;
+    IEnumerable<ItemPath> CacheablePaths
+    {
+        get { yield return FullPath; }
+    }
+    IDictionary<string, IItem> Links => ImmutableDictionary<string, IItem>.Empty;
     PSObject ToPipelineObject(Func<ItemPath,string> pathResolver);
+}
+
+public static class ItemExtensions
+{
+    public static ItemPath MatchingCacheablePath(this IItem item, ItemPath pathWithPattern)
+    {
+        return item
+            .CacheablePaths
+            .FirstOrDefault(path => path.MatchesPattern(pathWithPattern))
+            ?? item.FullPath;
+    }
+
+    public static bool MatchesPattern(this IItem item, ItemPath pathWithPattern)
+    {
+        return item.FullPath.MatchesPattern(pathWithPattern);
+    }
 }

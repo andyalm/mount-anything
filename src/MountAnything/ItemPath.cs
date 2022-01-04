@@ -1,6 +1,8 @@
+using System.Text.RegularExpressions;
+
 namespace MountAnything;
 
-public record struct ItemPath
+public record ItemPath
 {
     public static explicit operator string(ItemPath path) => path.FullName;
     public static explicit operator ItemPath(string value) => new(value);
@@ -52,5 +54,28 @@ public record struct ItemPath
     {
         var combinedPath = Path.Combine(new[] { FullName }.Concat(parts).ToArray()).Replace(@"\", Separator.ToString());
         return new ItemPath(combinedPath);
+    }
+    
+    public ItemPath Ancestor(string ancestorName)
+    {
+        var currentPath = this;
+        while (!currentPath.IsRoot && !currentPath.Name.Equals(ancestorName, StringComparison.OrdinalIgnoreCase))
+        {
+            currentPath = currentPath.Parent;
+        }
+
+        if (currentPath.IsRoot)
+        {
+            throw new ArgumentException($"No ancestor with name '{ancestorName}' could be found in path {this}");
+        }
+
+        return currentPath;
+    }
+
+    public bool MatchesPattern(ItemPath pathWithPattern)
+    {
+        var patternAsRegex = new Regex("^" + Regex.Escape(pathWithPattern.FullName).Replace(@"\*", ".*") + "$", RegexOptions.IgnoreCase);
+
+        return patternAsRegex.IsMatch(FullName);
     }
 }

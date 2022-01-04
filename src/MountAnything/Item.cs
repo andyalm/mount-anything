@@ -14,15 +14,13 @@ public abstract class Item<T> : IItem where T : class
     public ItemPath ParentPath { get; }
     public ItemPath FullPath => ParentPath.Combine(ItemName);
     public abstract string ItemName { get; }
-    public virtual string ItemType => GetType().Name.EndsWith("Item")
-        ? GetType().Name.Remove(GetType().Name.Length - 4)
-        : GetType().Name;
-    public T UnderlyingObject { get; }
     public abstract bool IsContainer { get; }
+    public T UnderlyingObject { get; }
 
-    public virtual string TypeName => UnderlyingObject.GetType().FullName!;
+    public virtual string? ItemType => null;
+    protected virtual string TypeName => UnderlyingObject.GetType().FullName!;
     
-    public virtual IEnumerable<string> Aliases => Enumerable.Empty<string>();
+    protected virtual IEnumerable<string> Aliases => Enumerable.Empty<string>();
 
     public IEnumerable<ItemPath> CacheablePaths
     {
@@ -36,7 +34,7 @@ public abstract class Item<T> : IItem where T : class
         }
     }
 
-    public virtual void CustomizePSObject(PSObject psObject) {}
+    protected virtual void CustomizePSObject(PSObject psObject) {}
 
     public PSObject ToPipelineObject(Func<ItemPath,string> pathResolver)
     {
@@ -44,7 +42,10 @@ public abstract class Item<T> : IItem where T : class
         psObject.SetTypeName(TypeName);
         psObject.SetPropertyIfMissing(nameof(ItemName), ItemName);
         psObject.SetPropertyIfMissing("Name", ItemName);
-        psObject.SetProperty(nameof(ItemType), ItemType);
+        if (ItemType != null)
+        {
+            psObject.SetProperty(nameof(ItemType), ItemType);
+        }
         SetLinks(pathResolver, psObject);
         
         CustomizePSObject(psObject);
@@ -73,8 +74,8 @@ public abstract class Item<T> : IItem where T : class
         psObject.Properties.Add(new PSNoteProperty(nameof(Links), linkObject));
     }
 
-    public ImmutableDictionary<string,IItem> Links { get; protected init; } = ImmutableDictionary<string, IItem>.Empty;
-    public ImmutableDictionary<string,ItemPath> LinkPaths { get; protected init; } = ImmutableDictionary<string, ItemPath>.Empty;
+    public IDictionary<string,IItem> Links { get; protected init; } = ImmutableDictionary<string, IItem>.Empty;
+    public IDictionary<string,ItemPath> LinkPaths { get; protected init; } = ImmutableDictionary<string, ItemPath>.Empty;
 }
 
 public abstract class Item : Item<PSObject>
@@ -87,8 +88,8 @@ public abstract class Item : Item<PSObject>
     {
     }
 
-    public override string TypeName => UnderlyingObject.TypeNames.First();
-    
+    protected override string TypeName => UnderlyingObject.TypeNames.FirstOrDefault() ?? typeof(PSObject).FullName!;
+
     protected T? Property<T>(string name)
     {
         return UnderlyingObject.Property<T?>(name);

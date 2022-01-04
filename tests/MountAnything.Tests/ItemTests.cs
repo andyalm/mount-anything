@@ -79,6 +79,22 @@ public class ItemTests
         var pipelineObject = item.ToPipelineObject(p => p.ToString());
         pipelineObject.Properties["ItemType"].Value.Should().Be("over");
     }
+    
+    [Theory]
+    [InlineData("myali*", "myalias")]
+    [InlineData("myalias", "myalias")]
+    [InlineData("te*", "test")]
+    [InlineData("test", "test")]
+    [InlineData("foo", "test")]
+    public void CanGetMatchingCacheableItem(string pattern, string expectedMatchingPath)
+    {
+        var testItem = new TestItem(ItemPath.Root, new PSObject());
+        testItem.AddAlias("myalias");
+
+        var matchingPath = testItem.MatchingCacheablePath(new ItemPath(pattern));
+        matchingPath.FullName.Should().Be(expectedMatchingPath);
+    }
+    
 
     public class TestItem : Item
     {
@@ -86,8 +102,15 @@ public class ItemTests
         
         public TestItem(ItemPath parentPath, object underlyingObject) : base(parentPath, underlyingObject) {}
 
-        public override string ItemName => "Test";
+        public override string ItemName => "test";
         public override bool IsContainer => false;
+
+        protected override IEnumerable<string> Aliases { get; } = new List<string>();
+
+        public void AddAlias(string alias)
+        {
+            ((List<string>)Aliases).Add(alias);
+        }
 
         public new T? Property<T>(string propertyName) => base.Property<T>(propertyName);
     }
