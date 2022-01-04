@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Concurrent;
 using System.Management.Automation;
 using System.Management.Automation.Provider;
 using Autofac;
@@ -10,34 +11,33 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
     IPathHandlerContext,
     IContentCmdletProvider
 {
-    private static readonly Cache _cache = new();
-    private static Router? _router;
-    protected override bool IsValidPath(string path) => true;
-    public abstract Router CreateRouter();
+    // We need cache and router to be long-lived instances. Since powershell creates instances
+    // of a provider for what appears to be every command, these must be stored as statics so that
+    // we can re-use instances across command invocations. Since this is a base class, all inheriting providers
+    // will be sharing the static instances, so we need to store an instance of each per provider module to ensure
+    // state does not leak between providers.
+    private static readonly ConcurrentDictionary<string,Cache> _caches = new();
+    private static readonly ConcurrentDictionary<string,Router> _routers = new();
+    
+    private readonly Lazy<Cache> _cache;
+    private readonly Lazy<Router> _router;
 
-    private Router Router
+    protected abstract Router CreateRouter();
+    
+    protected MountAnythingProvider()
     {
-        get
-        {
-            if (_router == null)
-            {
-                lock (GetType())
-                {
-                    if (_router == null)
-                    {
-                        _router = CreateRouter();
-                    }
-                }
-            }
-
-            return _router;
-        }
+        _cache = new Lazy<Cache>(() => _caches.GetOrAdd(StaticCacheKey, _ => new Cache()));
+        _router = new Lazy<Router>(() => _routers.GetOrAdd(StaticCacheKey, _ => CreateRouter()));
     }
 
-    public Cache Cache => _cache;
+    private string StaticCacheKey => $"{PSDriveInfo.Provider.Name}";
+
+    private Router Router => _router.Value;
+    public Cache Cache => _cache.Value;
     
     bool IPathHandlerContext.Force => base.Force.IsPresent;
-
+    
+    protected override bool IsValidPath(string path) => true;
     protected override bool ItemExists(string path)
     {
         //WriteDebug($"ItemExists({path})");
