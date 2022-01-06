@@ -1,3 +1,6 @@
+using System.Collections.ObjectModel;
+using System.Management.Automation;
+
 namespace MountAnything;
 
 public abstract class PathHandler : IPathHandler
@@ -88,5 +91,16 @@ public abstract class PathHandler : IPathHandler
     {
         return GetChildItems(Freshness.Default)
             .Where(i => i.MatchesPattern(Path.Combine(filter)));
+    }
+
+    public virtual IEnumerable<IItemProperty> GetItemProperties(HashSet<string> propertyNames, Func<ItemPath, string> pathResolver)
+    {
+        var item = GetItem();
+        if (item == null)
+        {
+            return Enumerable.Empty<IItemProperty>();
+        }
+
+        return item.ToPipelineObject(pathResolver).AsItemProperties().WherePropertiesMatch(propertyNames);
     }
 }

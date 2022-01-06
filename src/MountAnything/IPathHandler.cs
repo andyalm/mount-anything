@@ -9,4 +9,5 @@ public interface IPathHandler
     IEnumerable<IItem> GetChildItems(Freshness? freshness = null);
     Freshness GetChildItemsCommandDefaultFreshness { get; }
     IEnumerable<IItem> GetChildItems(string filter);
+    IEnumerable<IItemProperty> GetItemProperties(HashSet<string> propertyNames, Func<ItemPath, string> pathResolver);
 }
