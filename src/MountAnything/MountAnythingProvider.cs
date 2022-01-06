@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Management.Automation.Provider;
 using Autofac;
@@ -9,7 +10,8 @@ using MountAnything.Routing;
 namespace MountAnything;
 public abstract class MountAnythingProvider : NavigationCmdletProvider,
     IPathHandlerContext,
-    IContentCmdletProvider
+    IContentCmdletProvider,
+    IPropertyCmdletProvider
 {
     // We need cache and router to be long-lived instances. Since powershell creates instances
     // of a provider for what appears to be every command, these must be stored as statics so that
@@ -370,6 +372,52 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
     }
 
     public object? GetContentWriterDynamicParameters(string path)
+    {
+        return null;
+    }
+
+    #endregion
+
+    #region Properties
+
+    public void ClearProperty(string path, Collection<string> propertyToClear)
+    {
+        throw new NotSupportedException("Only reading properties is currently supported by this provider");
+    }
+
+    public object? ClearPropertyDynamicParameters(string path, Collection<string> propertyToClear)
+    {
+        return null;
+    }
+
+    public void GetProperty(string path, Collection<string> providerSpecificPickList)
+    {
+        WithPathHandler(path, handler =>
+        {
+            var propertyNames = providerSpecificPickList.ToHashSet();
+            var itemProperties = handler
+                .GetItemProperties(propertyNames, ToFullyQualifiedProviderPath)
+                .WherePropertiesMatch(propertyNames);
+            var propertyObject = new PSObject();
+            foreach (var itemProperty in itemProperties)
+            {
+                propertyObject.Properties.Add(new PSNoteProperty(itemProperty.Name, itemProperty.Value));
+            }
+            WritePropertyObject(propertyObject, path);
+        });
+    }
+
+    public object? GetPropertyDynamicParameters(string path, Collection<string> providerSpecificPickList)
+    {
+        return null;
+    }
+
+    public void SetProperty(string path, PSObject propertyValue)
+    {
+        throw new NotSupportedException("Only reading properties is currently supported by this provider");
+    }
+
+    public object? SetPropertyDynamicParameters(string path, PSObject propertyValue)
     {
         return null;
     }
