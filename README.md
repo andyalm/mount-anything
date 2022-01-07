@@ -91,3 +91,59 @@ public class SecurityGroupItem : Item<SecurityGroup>
     public override bool IsContainer => false;
 }
 ```
+
+## Dependency Injection
+
+All `IPathHandler` instances support dependency injection, powered by [Autofac](https://autofac.readthedocs.io/).
+The Router provides a `RegisterServices` method that allows you to use Autofac's [ContainerBuilder](https://autofac.readthedocs.io/en/latest/register/registration.html)
+to register additional services that can be injected into your `PathHandler`'s. Services can be registered at any point in the routing
+hierarchy and a registration further down in the hierarchy will override one that happens higher up. For example, take this example:
+
+```c#
+// registers the default implementation of RegionEndpoint to be us-east-1
+router.RegisterServices(builder => builder.Register(_ => RegionEndpoint.UsEast1));
+router.MapLiteral<RegionsHandler>("regions", regions =>
+{
+    regions.Map<RegionHandler>("Region", region =>
+    {
+        region.RegisterServices((match, builder) =>
+        {
+            // overrides the default region registration above
+            builder.Register(_ => RegionEndpoint.FromSystemName(match.Values["Region"]);
+        });
+    });
+});
+```
+
+In the above example, any PathHandler underneath the `/regions` path will be injected the region from the current path. Any PathHandler
+outside of the `/regions` path will have the `us-east-1` region injected.
+
+### Injecting an ancestor item
+
+Sometimes `PathHandler`'s need to know something about a specific item above them in the path hierarchy. You can have an ancestor item
+injected into your `PathHandler`'s constructor by using the `IItemAncestor<TItem>` interface. For example, in this theoretical example,
+an EcsService handler wants to know what ECS cluster it belongs to, so it declares `IItemAncestor<ClusterItem>` as a constructor dependency:
+
+```c#
+public class EcsServiceHandler : PathHandler
+{
+    private readonly IItemAncestor<ClusterItem> _cluster;
+    private readonly IEcsApi _ecs;
+
+    public EcsServiceHandler(ItemPath path, IPathHandlerContext context, IItemAncestor<ClusterItem> cluster, IEcsApi ecs) : base(path, context)
+    {
+        _cluster = cluster;
+        _ecs = ecs;
+    }
+    
+    protected override IItem GetItemImpl()
+    {
+        var ecsService = _ecs.DescribeService(serviceName: ItemName, clusterName: _cluster.Name);
+        
+        return new EcsServiceItem(ParentPath, ecsService);
+    }
+}
+```
+
+This example assumes there is a `IPathHandler` higher in the routing hierarchy whose `GetItem` implementation returns an item of type `ClusterItem`.
+The `IItemAncestor<TItem>` implementation walks up the hierarchy looking for an item whose type matches the one declared as `TItem`.
