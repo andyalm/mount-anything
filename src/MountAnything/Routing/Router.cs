@@ -69,8 +69,9 @@ public class Router : IRoutable
     {
         var builder = new ContainerBuilder();
         builder.RegisterInstance(this);
+        builder.RegisterGeneric(typeof(ItemAncestorResolver<>)).As(typeof(IItemAncestor<>)).InstancePerLifetimeScope();
         _serviceRegistrations.Invoke(builder);
-        builder.RegisterSource(new AncestorItemSource());
+        
         builder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource());
 
         return builder.Build();

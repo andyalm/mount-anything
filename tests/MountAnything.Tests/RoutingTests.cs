@@ -62,7 +62,7 @@ public class RoutingTests
         var (_, lifetimeScope) = _router.RouteToHandler(itemPath, new FakeHandlerContext());
         try
         {
-            lifetimeScope.Resolve<IntermediateItem>().ItemName.Should().Be(new ItemPath(injectedItemPath).Name);
+            lifetimeScope.Resolve<IItemAncestor<IntermediateItem>>().Item.ItemName.Should().Be(new ItemPath(injectedItemPath).Name);
         }
         finally
         {
