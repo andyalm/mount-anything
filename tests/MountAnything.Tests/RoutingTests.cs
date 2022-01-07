@@ -93,7 +93,6 @@ public class RoutingTests
         public override bool IsContainer => true;
     }
     
-    [InjectableItem(typeof(IntermediateItem))]
     public class IntermediateHandler : PathHandler
     {
         public IntermediateHandler(ItemPath path, IPathHandlerContext context) : base(path, context)

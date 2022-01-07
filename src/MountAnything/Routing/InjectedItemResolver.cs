@@ -20,18 +20,12 @@ internal class InjectedItemResolver
         do
         {
             var thisHandlerType = _router.GetResolver(thisItemPath).HandlerType;
-            var thisItemType = thisHandlerType.GetCustomAttribute<InjectableItemAttribute>()?.ItemType;
 
-            if (thisItemType == itemType)
+            var handler =
+                (IPathHandler)_lifetimeScope.Resolve(thisHandlerType, new NamedParameter("path", thisItemPath));
+            var item = handler.GetItem();
+            if (item != null && itemType.IsInstanceOfType(item))
             {
-                var handler =
-                    (IPathHandler)_lifetimeScope.Resolve(thisHandlerType, new NamedParameter("path", thisItemPath));
-                var item = handler.GetItem();
-                if (item == null)
-                {
-                    throw new RoutingException($"Item at {itemPath} does not exist");
-                }
-
                 return item;
             }
 

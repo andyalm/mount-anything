@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using Autofac;
 
@@ -19,15 +18,6 @@ public class Route : IRoutable
         Regex = new Regex("^" + regex + "$", RegexOptions.IgnoreCase);
         HandlerType = handlerType;
         _serviceRegistrations = serviceRegistrations ?? ((_, _) => {});
-        var injectableItemAttribute = handlerType.GetCustomAttribute<InjectableItemAttribute>();
-        if (injectableItemAttribute != null)
-        {
-            _serviceRegistrations += (match, builder) =>
-            {
-                builder.Register(c => c.Resolve<InjectedItemResolver>().ResolveItem(match.Path, injectableItemAttribute.ItemType))
-                    .As(injectableItemAttribute.ItemType);
-            };
-        }
     }
     
     public bool TryGetResolver(ItemPath path, out HandlerResolver resolver)
