@@ -16,13 +16,13 @@ internal class InjectedItemResolver
 
     public object ResolveItem(ItemPath itemPath, Type itemType)
     {
-        var thisItemPath = itemPath;
+        var thisItemPath = itemPath.Parent;
         do
         {
             var thisHandlerType = _router.GetResolver(thisItemPath).HandlerType;
 
             var handler =
-                (IPathHandler)_lifetimeScope.Resolve(thisHandlerType, new NamedParameter("path", thisItemPath));
+                (IPathHandler)_lifetimeScope.Resolve(thisHandlerType, new TypedParameter(typeof(ItemPath), thisItemPath));
             var item = handler.GetItem();
             if (item != null && itemType.IsInstanceOfType(item))
             {
@@ -32,7 +32,7 @@ internal class InjectedItemResolver
             thisItemPath = thisItemPath.Parent;
         } while (!thisItemPath.IsRoot);
 
-        throw new RoutingException(
+        throw new ItemUnresolvableException(
             $"Unable to find any parent paths of {itemPath} that resolve to an item of type {itemType}");
     }
 }

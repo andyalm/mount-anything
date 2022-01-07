@@ -15,15 +15,20 @@ public class RoutingTests
     public RoutingTests()
     {
         _router = Router.Create<RootHandler>();
-        _router.Map<IntermediateHandler>(intermediate =>
+        _router.Map<TopLevelHandler>(topLevel =>
         {
-            intermediate.Map<LeafHandler>();
+            topLevel.Map<IntermediateHandler>(intermediate =>
+            {
+                intermediate.Map<LeafHandler>();
+            });
         });
+        
     }
 
     [Theory]
-    [InlineData("intermediate01", typeof(IntermediateHandler))]
-    [InlineData("intermediate02/leaf01", typeof(LeafHandler))]
+    [InlineData("toplevel01", typeof(TopLevelHandler))]
+    [InlineData("toplevel01/intermediate01", typeof(IntermediateHandler))]
+    [InlineData("toplevel02/intermediate02/leaf01", typeof(LeafHandler))]
     [InlineData("", typeof(RootHandler))]
     public void HandlerTypeCanBeResolvedFromPath(string path, Type expectedHandlerType)
     {
@@ -31,8 +36,9 @@ public class RoutingTests
     }
     
     [Theory]
-    [InlineData("intermediate01", typeof(IntermediateHandler))]
-    [InlineData("intermediate02/leaf01", typeof(LeafHandler))]
+    [InlineData("toplevel01", typeof(TopLevelHandler))]
+    [InlineData("toplevel01/intermediate01", typeof(IntermediateHandler))]
+    [InlineData("toplevel02/intermediate02/leaf01", typeof(LeafHandler))]
     [InlineData("", typeof(RootHandler))]
     public void HandlerCanBeCreatedFromPath(string path, Type expectedHandlerType)
     {
@@ -48,15 +54,15 @@ public class RoutingTests
     }
 
     [Theory]
-    [InlineData("intermediate02")]
-    [InlineData("intermediate03")]
-    public void CanInjectItemFromParentHandler(string injectedItemName)
+    [InlineData("toplevel01/intermediate02")]
+    [InlineData("toplevel01/intermediate03")]
+    public void CanInjectItemFromParentHandler(string injectedItemPath)
     {
-        var itemPath = new ItemPath(injectedItemName).Combine("leaf02");
+        var itemPath = new ItemPath(injectedItemPath).Combine("leaf02");
         var (_, lifetimeScope) = _router.RouteToHandler(itemPath, new FakeHandlerContext());
         try
         {
-            lifetimeScope.Resolve<IntermediateItem>().ItemName.Should().Be(injectedItemName);
+            lifetimeScope.Resolve<IntermediateItem>().ItemName.Should().Be(new ItemPath(injectedItemPath).Name);
         }
         finally
         {
@@ -77,9 +83,8 @@ public class RoutingTests
 
         protected override IEnumerable<IItem> GetChildItemsImpl()
         {
-            yield return new IntermediateItem(Path, "intermediate01");
-            yield return new IntermediateItem(Path, "intermediate02");
-            yield return new IntermediateItem(Path, "intermediate03");
+            yield return new TopLevelItem(ParentPath, "toplevel01");
+            yield return new TopLevelItem(ParentPath, "toplevel02");
         }
     }
     
@@ -90,6 +95,36 @@ public class RoutingTests
         }
 
         public override string ItemName => "";
+        public override bool IsContainer => true;
+    }
+    
+    public class TopLevelHandler : PathHandler
+    {
+        public TopLevelHandler(ItemPath path, IPathHandlerContext context) : base(path, context)
+        {
+        }
+
+        protected override IItem? GetItemImpl()
+        {
+            return new TopLevelItem(ParentPath, ItemName);
+        }
+
+        protected override IEnumerable<IItem> GetChildItemsImpl()
+        {
+            yield return new IntermediateItem(Path, "intermediate01");
+            yield return new IntermediateItem(Path, "intermediate02");
+            yield return new IntermediateItem(Path, "intermediate03");
+        }
+    }
+    
+    public class TopLevelItem : Item
+    {
+        public TopLevelItem(ItemPath parentPath, string itemName) : base(parentPath, new PSObject())
+        {
+            ItemName = itemName;
+        }
+
+        public override string ItemName { get; }
         public override bool IsContainer => true;
     }
     
