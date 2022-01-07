@@ -32,7 +32,7 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
         _router = new Lazy<Router>(() => _routers.GetOrAdd(StaticCacheKey, _ => CreateRouter()));
     }
 
-    private string StaticCacheKey => $"{PSDriveInfo.Provider.Name}";
+    private string StaticCacheKey => $"{GetType().FullName}";
 
     private Router Router => _router.Value;
     public Cache Cache => _cache.Value;

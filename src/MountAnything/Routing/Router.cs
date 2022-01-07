@@ -36,10 +36,13 @@ public class Router : IRoutable
     public (IPathHandler Handler, ILifetimeScope Container) RouteToHandler(ItemPath path, IPathHandlerContext context)
     {
         var resolver = GetResolver(path);
-        var lifetimeScope = _rootContainer.Value.BeginLifetimeScope(resolver.ServiceRegistrations);
-        var handler = (IPathHandler)lifetimeScope.Resolve(resolver.HandlerType,
-            new NamedParameter(nameof(path), path),
-            new TypedParameter(typeof(IPathHandlerContext), context));
+        var lifetimeScope = _rootContainer.Value.BeginLifetimeScope(builder =>
+        {
+            resolver.ServiceRegistrations.Invoke(builder);
+            builder.RegisterInstance(path);
+            builder.RegisterInstance(context);
+        });
+        var handler = (IPathHandler)lifetimeScope.Resolve(resolver.HandlerType);
 
         return (handler, lifetimeScope);
     }
@@ -66,7 +69,9 @@ public class Router : IRoutable
     {
         var builder = new ContainerBuilder();
         builder.RegisterInstance(this);
+        builder.RegisterGeneric(typeof(ItemAncestorResolver<>)).As(typeof(IItemAncestor<>)).InstancePerLifetimeScope();
         _serviceRegistrations.Invoke(builder);
+        
         builder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource());
 
         return builder.Build();
