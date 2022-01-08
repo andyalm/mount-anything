@@ -57,7 +57,7 @@ public static class PSObjectExtensions
         }
     }
 
-    public static void SetProperty(this PSObject psObject, string propertyName, object value)
+    public static void SetProperty(this PSObject psObject, string propertyName, object? value)
     {
         var property = psObject.Properties[propertyName];
         if (property != null)

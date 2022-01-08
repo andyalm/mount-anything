@@ -94,6 +94,28 @@ public class ItemTests
         var matchingPath = testItem.MatchingCacheablePath(new ItemPath(pattern));
         matchingPath.FullName.Should().Be(expectedMatchingPath);
     }
+
+    [Fact]
+    public void PropertyWithItemPropertyAttributeAddedToPipelineObject()
+    {
+        var item = new TestItem(ItemPath.Root, new PSObject());
+        item.CustomProperty = "test-value";
+        var pipelineObject = item.ToPipelineObject(s => s.FullName);
+
+        pipelineObject.Properties["CustomProperty"].Should().NotBeNull();
+        pipelineObject.Properties["CustomProperty"].Value.Should().Be("test-value");
+    }
+    
+    [Fact]
+    public void PropertyWithItemPropertyAttributeAndCustomNameAddedToPipelineObject()
+    {
+        var item = new TestItem(ItemPath.Root, new PSObject());
+        item.CustomPropertyWithName = "custom-test-value";
+        var pipelineObject = item.ToPipelineObject(s => s.FullName);
+
+        pipelineObject.Properties["CustomPropName"].Should().NotBeNull();
+        pipelineObject.Properties["CustomPropName"].Value.Should().Be("custom-test-value");
+    }
     
 
     public class TestItem : Item
@@ -113,6 +135,12 @@ public class ItemTests
         }
 
         public new T? Property<T>(string propertyName) => base.Property<T>(propertyName);
+        
+        [ItemProperty]
+        public string CustomProperty { get; set; }
+        
+        [ItemProperty("CustomPropName")]
+        public string CustomPropertyWithName { get; set; }
     }
 
     public class ItemWithCustomItemType : Item

@@ -1,10 +1,14 @@
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Management.Automation;
+using System.Reflection;
 
 namespace MountAnything;
 
 public abstract class Item<T> : IItem where T : class
 {
+    private static ConcurrentDictionary<Type, PropertyInfo[]> _itemPropertyCache = new();
+
     protected Item(ItemPath parentPath, T underlyingObject)
     {
         ParentPath = parentPath;
@@ -47,10 +51,24 @@ public abstract class Item<T> : IItem where T : class
             psObject.SetProperty(nameof(ItemType), ItemType);
         }
         SetLinks(pathResolver, psObject);
-        
+        SetPropertiesFromPropertyItemAttributes(psObject);
         CustomizePSObject(psObject);
 
         return psObject;
+    }
+
+    private void SetPropertiesFromPropertyItemAttributes(PSObject psObject)
+    {
+        var properties = _itemPropertyCache.GetOrAdd(GetType(), t => t.GetProperties().Where(p => p.GetCustomAttribute<ItemPropertyAttribute>() != null).ToArray());
+
+        foreach (var itemProperty in properties)
+        {
+            var propertyName = itemProperty.GetCustomAttribute<ItemPropertyAttribute>()?.PropertyName ??
+                               itemProperty.Name;
+
+            var propertyValue = itemProperty.GetValue(this);
+            psObject.SetProperty(propertyName, propertyValue);
+        }
     }
 
     private void SetLinks(Func<ItemPath, string> pathResolver, PSObject psObject)
