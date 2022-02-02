@@ -13,6 +13,7 @@ public interface IItem
     {
         get { yield return FullPath; }
     }
+    IEnumerable<string> Aliases => Enumerable.Empty<string>();
     IDictionary<string, IItem> Links => ImmutableDictionary<string, IItem>.Empty;
     PSObject ToPipelineObject(Func<ItemPath,string> pathResolver);
 }
@@ -29,6 +30,6 @@ public static class ItemExtensions
 
     public static bool MatchesPattern(this IItem item, ItemPath pathWithPattern)
     {
-        return item.FullPath.MatchesPattern(pathWithPattern);
+        return item.CacheablePaths.Any(p => p.MatchesPattern(pathWithPattern));
     }
 }
