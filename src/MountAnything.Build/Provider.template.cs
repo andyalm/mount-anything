@@ -3,12 +3,16 @@ using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Management.Automation.Provider;
+using System.Reflection;
 using Autofac;
+using MountAnything;
 using MountAnything.Content;
 using MountAnything.Routing;
 
-namespace MountAnything;
-public abstract class MountAnythingProvider : NavigationCmdletProvider,
+namespace MountAnything.Build;
+
+[CmdletProvider("MyProviderName", ProviderCapabilities.Filter | ProviderCapabilities.ExpandWildcards)]
+internal abstract class Provider : NavigationCmdletProvider,
     IPathHandlerContext,
     IContentCmdletProvider,
     IPropertyCmdletProvider
@@ -23,13 +27,47 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
     
     private readonly Lazy<Cache> _cache;
     private readonly Lazy<Router> _router;
-
-    protected abstract Router CreateRouter();
     
-    protected MountAnythingProvider()
+    private Router LoadRouterViaIsolatedContext()
+    {
+        var assembly = LoadImplAssembly();
+        var routerFactoryType = assembly
+            .GetExportedTypes()
+            .Single(t => t.GetCustomAttribute<RouterFactoryAttribute>() != null);
+        var routerFactoryMethod = routerFactoryType.GetMethod("CreateRouter", BindingFlags.Static | BindingFlags.Public);
+        if (routerFactoryMethod == null)
+        {
+            throw new InvalidOperationException(
+                $"The router factory type {routerFactoryType.FullName} must contain a single public static method named CreateRouter");
+        }
+
+        if (routerFactoryMethod.GetParameters().Any())
+        {
+            throw new InvalidOperationException($"The CreateRouter method on type {routerFactoryType.FullName} cannot contain any parameters");
+        }
+
+        if (routerFactoryMethod.ReturnType != typeof(Router))
+        {
+            throw new InvalidOperationException(
+                $"The CreateRouter method on type {routerFactoryType.FullName} must return a {typeof(Router).FullName} type");
+        }
+
+        return (Router) routerFactoryMethod.Invoke(null, null)!;
+    }
+
+    private Assembly LoadImplAssembly()
+    {
+        var modulePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        var apiAssemblyDir = Path.Combine(modulePath, "Impl");
+        var assemblyLoadContext = new ProviderAssemblyContext(apiAssemblyDir);
+        
+        return assemblyLoadContext.LoadFromAssemblyName(new AssemblyName("MountAnything.Impl"));
+    }
+    
+    public Provider()
     {
         _cache = new Lazy<Cache>(() => _caches.GetOrAdd(StaticCacheKey, _ => new Cache()));
-        _router = new Lazy<Router>(() => _routers.GetOrAdd(StaticCacheKey, _ => CreateRouter()));
+        _router = new Lazy<Router>(() => _routers.GetOrAdd(StaticCacheKey, _ => LoadRouterViaIsolatedContext()));
     }
 
     private string StaticCacheKey => $"{GetType().FullName}";

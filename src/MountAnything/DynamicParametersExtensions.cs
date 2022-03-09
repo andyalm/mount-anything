@@ -2,7 +2,7 @@ using MountAnything.Routing;
 
 namespace MountAnything;
 
-internal static class DynamicParametersExtensions
+public static class DynamicParametersExtensions
 {
     public static object? CreateDynamicParameters(this HandlerResolver handlerResolver, Type handlerParameterInterface)
     {

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- hack needed here because build assets are ignored in ProjectReferences -->
+  <Import Project="..\..\MountAnything.Build\build\MountAnything.Build.props" />
+  
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <PowershellProviderName>MountPowershell</PowershellProviderName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\MountAnything.Build\MountAnything.Build.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" OutputItemType="Analyzer">
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\MountAnything\MountAnything.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Management.Automation" Version="7.2.1" />
+  </ItemGroup>
+
+</Project>

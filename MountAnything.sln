@@ -14,6 +14,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFi
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MountAnything.Build", "src\MountAnything.Build\MountAnything.Build.csproj", "{878F15C9-48BB-4598-A56B-FC7B8CA9FAFA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{23882579-D5E5-4934-B3CC-D296D5F59B50}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MountPowershell", "examples\mount-powershell\MountPowershell.csproj", "{1E2B0703-587F-4545-97E2-4BEBCCC010CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,8 +37,17 @@ Global
 		{D80D9453-212C-4D8F-8B74-E3B17A81ADEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D80D9453-212C-4D8F-8B74-E3B17A81ADEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D80D9453-212C-4D8F-8B74-E3B17A81ADEA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{878F15C9-48BB-4598-A56B-FC7B8CA9FAFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{878F15C9-48BB-4598-A56B-FC7B8CA9FAFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{878F15C9-48BB-4598-A56B-FC7B8CA9FAFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{878F15C9-48BB-4598-A56B-FC7B8CA9FAFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E2B0703-587F-4545-97E2-4BEBCCC010CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E2B0703-587F-4545-97E2-4BEBCCC010CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E2B0703-587F-4545-97E2-4BEBCCC010CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E2B0703-587F-4545-97E2-4BEBCCC010CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D80D9453-212C-4D8F-8B74-E3B17A81ADEA} = {E8302017-CFB2-454F-B7CB-2BC54537E5F2}
+		{1E2B0703-587F-4545-97E2-4BEBCCC010CF} = {23882579-D5E5-4934-B3CC-D296D5F59B50}
 	EndGlobalSection
 EndGlobal
