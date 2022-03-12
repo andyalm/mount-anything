@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Management.Automation.Provider;
+using System.Reflection;
 using Autofac;
 using MountAnything.Content;
 using MountAnything.Hosting.Abstractions;
@@ -10,32 +11,41 @@ using MountAnything.Routing;
 
 namespace MountAnything;
 
-public class ProviderImpl : IProviderImpl
+public class ProviderImpl : IProviderImpl, IPathHandlerContext
 {
-    // We need cache and router to be long-lived instances. Since powershell creates instances
-    // of a provider for what appears to be every command, these must be stored as statics so that
-    // we can re-use instances across command invocations. Since this is a base class, all inheriting providers
-    // will be sharing the static instances, so we need to store an instance of each per provider module to ensure
-    // state does not leak between providers.
-    private static readonly ConcurrentDictionary<string,Cache> _caches = new();
-    private static readonly ConcurrentDictionary<string,Router> _routers = new();
-    
+    private readonly IProviderHost _host;
+    private readonly Assembly _entrypointAssembly;
     private readonly Lazy<Cache> _cache;
     private readonly Lazy<Router> _router;
-    
-    
-    public ProviderImpl()
+
+    public ProviderImpl(IProviderHost host, Assembly entrypointAssembly)
     {
-        _cache = new Lazy<Cache>(() => _caches.GetOrAdd(StaticCacheKey, _ => new Cache()));
-        _router = new Lazy<Router>(() => _routers.GetOrAdd(StaticCacheKey, _ => LoadRouterViaIsolatedContext()));
+        _host = host;
+        _entrypointAssembly = entrypointAssembly;
+        //TODO: Get rid of lazy
+        _cache = new Lazy<Cache>(() => new Cache());
+        _router = new Lazy<Router>(() => LoadRouterViaIsolatedContext());
     }
 
-    private string StaticCacheKey => $"{GetType().FullName}";
+    private Router LoadRouterViaIsolatedContext()
+    {
+        var routerFactoryType = _entrypointAssembly.GetExportedTypes()
+            .SingleOrDefault(t => typeof(IRouterFactory).IsAssignableFrom(t));
+        if (routerFactoryType == null)
+        {
+            throw new InvalidOperationException(
+                $"Could not find a public type that implements IRouterFactory in assembly {_entrypointAssembly.FullName}");
+        }
+
+        var routerFactory = (IRouterFactory)Activator.CreateInstance(routerFactoryType)!;
+        return routerFactory.CreateRouter();
+    }
 
     private Router Router => _router.Value;
     public Cache Cache => _cache.Value;
     
-    bool IPathHandlerContext.Force => base.Force.IsPresent;
+    bool IPathHandlerContext.Force => _host.Force;
+    CommandInvocationIntrinsics IPathHandlerContext.InvokeCommand => _host.InvokeCommand;
 
     public ProviderInfo Start(ProviderInfo providerInfo)
     {
@@ -338,13 +348,13 @@ public class ProviderImpl : IProviderImpl
 
     public string ToFullyQualifiedProviderPath(ItemPath path)
     {
-        return $"{PSDriveInfo.Name}:{ToProviderPath(path)}";
+        return $"{_host.PSDriveInfo.Name}:{ToProviderPath(path)}";
     }
 
     public void GetChildNames(string path, ReturnContainers returnContainers)
     {
         WriteDebug($"GetChildNames({path}, {returnContainers})");
-        base.GetChildNames(path, returnContainers);
+        _host.GetChildNamesDefaultImpl(path, returnContainers);
     }
 
     public object? GetChildNamesDynamicParameters(string path)
@@ -407,7 +417,7 @@ public class ProviderImpl : IProviderImpl
     public bool ConvertPath(string path, string filter, ref string updatedPath, ref string updatedFilter)
     {
         WriteDebug($"ConvertPath({path}, {filter})");
-        return base.ConvertPath(path, filter, ref updatedPath, ref updatedFilter);
+        return _host.ConvertPathDefaultImpl(path, filter, ref updatedPath, ref updatedFilter);
     }
 
     #region Content
@@ -505,21 +515,27 @@ public class ProviderImpl : IProviderImpl
     }
 
     #endregion
-    
-    
 
-    private void WriteDebug(string text)
-    {
-        throw new NotImplementedException();
-    }
 
-    private void WritePropertyObject(object propertyValue, string path)
-    {
-        throw new NotImplementedException();
-    }
+    private void WriteError(ErrorRecord error) => _host.WriteError(error);
+    void IPathHandlerContext.WriteWarning(string message) => WriteWarning(message);
+    private void WriteWarning(string message) => _host.WriteWarning(message);
 
-    private string ItemSeparator => throw new NotImplementedException();
-    
+    void IPathHandlerContext.WriteDebug(string message) => WriteDebug(message);
+    private void WriteDebug(string text) => _host.WriteDebug(text);
+
+    private void WritePropertyObject(object propertyValue, string path) =>
+        _host.WritePropertyObject(propertyValue, path);
+
+    private void WriteItemObject(object item, string path, bool isContainer) =>
+        _host.WriteItemObject(item, path, isContainer);
+
+    private char ItemSeparator => _host.ItemSeparator;
+
+    private object? DynamicParameters => _host.DynamicParameters;
+
+    private string? Filter => _host.Filter;
+
     private Exception NotImplemented()
     {
         throw new PSNotImplementedException("This operation is not currently supported by this provider");

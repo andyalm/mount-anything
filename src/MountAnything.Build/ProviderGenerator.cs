@@ -1,46 +1,36 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
 namespace MountAnything.Build;
 
+/// <summary>
+/// A roslyn source generator that generates a powershell provider that loads a <c>MountAnything</c> <c>Router</c> and path handlers
+/// in its own <c>AssemblyLoadContext</c>.
+/// </summary>
 [Generator]
 public class ProviderGenerator : ISourceGenerator
 {
-    public void Initialize(GeneratorInitializationContext context)
-    {
-        // Register a factory that can create our custom syntax receiver
-        //context.RegisterForSyntaxNotifications(() => new ProviderReceiver());
-    }
+    public void Initialize(GeneratorInitializationContext context) { }
 
     public void Execute(GeneratorExecutionContext context)
     {
         var providerName = context.GetMSBuildProperty("PowershellProviderName");
-        if (providerName == null)
-        {
-            throw new InvalidOperationException(
-                "The msbuild property 'PowershellProviderName' must be set in your project");
-        }
+        var rootNamespace = context.GetMSBuildPropertyOrDefault("RootNamespace") ?? context.GetMSBuildProperty("ProjectName");
+        var implAssemblyName = context.GetMSBuildProperty("ImplAssemblyName");
 
-        var rootNamespace = context.GetMSBuildProperty("RootNamespace");
-        if (rootNamespace == null)
-        {
-            throw new InvalidOperationException("The msbuild property 'RootNamespace' must be set in your project");
-        }
-
-        var providerSource = GetSource("Provider.template.cs")
+        var providerSource = GetSource("Provider.cs")
             .Replace("namespace MountAnything.Build;", $"namespace {rootNamespace};")
-            .Replace("MyProviderName", providerName);
-            //.Replace("protected abstract Router CreateRouter();", "");
+            .Replace("MyProviderName", providerName)
+            .Replace("MyImplAssemblyName", implAssemblyName);
         context.AddSource("Provider.cs", providerSource);
 
-        var assemblyContextSource = GetSource("ProviderAssemblyContext.template.cs")
+        var assemblyContextSource = GetSource("ProviderAssemblyContext.cs")
             .Replace("namespace MountAnything.Build;", $"namespace {rootNamespace};");
         context.AddSource("ProviderAssemblyContext.cs", assemblyContextSource);
     }
 
     private string GetSource(string filename)
     {
-        var fullyQualifiedResourceName = $"MountAnything.Build.{filename}";
+        var fullyQualifiedResourceName = $"MountAnything.Build.templates.{filename}";
         using var stream =
             typeof(ProviderGenerator).Assembly.GetManifestResourceStream(fullyQualifiedResourceName);
         if (stream == null)

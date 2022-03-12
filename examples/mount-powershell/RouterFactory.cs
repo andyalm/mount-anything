@@ -4,10 +4,9 @@ using MountAnything.Routing;
 
 namespace MountPowershell;
 
-[RouterFactory]
-public static class RouterFactory
+public class RouterFactory : IRouterFactory
 {
-    public static Router CreateRouter()
+    public Router CreateRouter()
     {
         //var router = Router.Create<>()
         return null;

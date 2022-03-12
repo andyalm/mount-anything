@@ -1,5 +1,8 @@
 <Project>
   <ItemGroup>
     <CompilerVisibleProperty Include="PowershellProviderName" />
+    <CompilerVisibleProperty Include="RootNamespace" />
+    <CompilerVisibleProperty Include="ProjectName" />
+    <CompilerVisibleProperty Include="ImplAssemblyName" />
   </ItemGroup>
 </Project>

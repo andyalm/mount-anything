@@ -9,27 +9,34 @@ namespace MountAnything.Build;
 [CmdletProvider("MyProviderName", ProviderCapabilities.Filter | ProviderCapabilities.ExpandWildcards)]
 public partial class Provider : NavigationCmdletProvider,
     IContentCmdletProvider,
-    IPropertyCmdletProvider
+    IPropertyCmdletProvider,
+    IProviderHost
 {
-    private readonly Lazy<IProviderImpl> _provider;
+    private static readonly Lazy<IProviderImpl> _provider;
+
+    public Provider()
+    {
+        _provider = new Lazy<IProviderImpl>(LoadProviderImplIsolatedContext);
+    }
     
     private IProviderImpl LoadProviderImplIsolatedContext()
     {
-        var assembly = LoadImplAssembly();
-        var providerImplType = assembly
+        var implAssembly = LoadImplAssembly("MyImplAssemblyName");
+        var frameworkAssembly = LoadImplAssembly("MountAnything");
+        var providerImplType = implAssembly
             .GetExportedTypes()
             .Single(t => typeof(IProviderImpl).IsAssignableFrom(t));
 
-        return (IProviderImpl)Activator.CreateInstance(providerImplType)!;
+        return (IProviderImpl)Activator.CreateInstance(providerImplType, this, frameworkAssembly)!;
     }
 
-    private Assembly LoadImplAssembly()
+    private static Assembly LoadImplAssembly(string assemblyName)
     {
         var modulePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
         var apiAssemblyDir = Path.Combine(modulePath, "Impl");
         var assemblyLoadContext = new ProviderAssemblyContext(apiAssemblyDir);
         
-        return assemblyLoadContext.LoadFromAssemblyName(new AssemblyName("MountAnything.Impl"));
+        return assemblyLoadContext.LoadFromAssemblyName(new AssemblyName(assemblyName));
     }
     
     protected override bool IsValidPath(string path) => _provider.Value.ItemExists(path);
@@ -57,6 +64,7 @@ public partial class Provider : NavigationCmdletProvider,
     {
         _provider.Value.GetChildItems(path, recurse, depth);
     }
+    
 
     protected override object? GetChildItemsDynamicParameters(string path, bool recurse)
     {
@@ -98,6 +106,11 @@ public partial class Provider : NavigationCmdletProvider,
         _provider.Value.GetChildNames(path, returnContainers);
     }
 
+    void IProviderHost.GetChildNamesDefaultImpl(string path, ReturnContainers returnContainers)
+    {
+        base.GetChildNames(path, returnContainers);
+    }
+
     protected override object? GetChildNamesDynamicParameters(string path)
     {
         return _provider.Value.GetChildNamesDynamicParameters(path);
@@ -111,6 +124,11 @@ public partial class Provider : NavigationCmdletProvider,
     protected override bool ConvertPath(string path, string filter, ref string updatedPath, ref string updatedFilter)
     {
         return _provider.Value.ConvertPath(path, filter, ref updatedPath, ref updatedFilter);
+    }
+    
+    bool IProviderHost.ConvertPathDefaultImpl(string path, string filter, ref string updatedPath, ref string updatedFilter)
+    {
+        return base.ConvertPath(path, filter, ref updatedPath, ref updatedFilter);
     }
 
     protected override string NormalizeRelativePath(string path, string basePath)
@@ -289,4 +307,11 @@ public partial class Provider : NavigationCmdletProvider,
     }
 
     #endregion
+
+    object? IProviderHost.DynamicParameters => DynamicParameters;
+    bool IProviderHost.Force => Force.IsPresent;
+    char IProviderHost.ItemSeparator => ItemSeparator;
+    PSDriveInfo IProviderHost.PSDriveInfo => PSDriveInfo;
+    
+    
 }
