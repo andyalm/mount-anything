@@ -26,11 +26,10 @@ public class ProviderGenerator : ISourceGenerator
         {
             throw new InvalidOperationException("The msbuild property 'RootNamespace' must be set in your project");
         }
-        
+
         var providerSource = GetSource("Provider.template.cs")
             .Replace("namespace MountAnything.Build;", $"namespace {rootNamespace};")
-            .Replace("MyProviderName", providerName)
-            .Replace("internal abstract class Provider", $"public class Provider");
+            .Replace("MyProviderName", providerName);
             //.Replace("protected abstract Router CreateRouter();", "");
         context.AddSource("Provider.cs", providerSource);
 

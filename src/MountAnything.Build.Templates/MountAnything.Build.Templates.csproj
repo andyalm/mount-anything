@@ -1,0 +1,19 @@
+    <Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>MountAnything.Build</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Provider.cs" />
+      <EmbeddedResource Include="ProviderAssemblyContext.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\MountAnything.Hosting.Abstractions\MountAnything.Hosting.Abstractions.csproj" />
+    </ItemGroup>
+
+</Project>

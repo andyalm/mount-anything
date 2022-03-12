@@ -20,8 +20,12 @@
   <ItemGroup>
     <!-- Package the generator in the analyzer directory of the nuget package -->
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <Compile Remove="*.template.cs" />
-    <EmbeddedResource Include="*.template.cs" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="..\MountAnything.Build.Templates\Provider.cs" Link="templates\Provider.cs" />
+    <EmbeddedResource Include="..\MountAnything.Build.Templates\ProviderAssemblyContext.cs" Link="templates\ProviderAssemblyContext.cs" />
+    <Compile Remove="templates\*.cs" />
   </ItemGroup>
   
   <ItemGroup>
@@ -30,6 +34,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
     <!-- Don't cascade the powershell dependency here. Its only here to make IDE properly highlight the MountAnythingProvider -->
     <!--PackageReference Include="System.Management.Automation" Version="7.2.0" PrivateAssets="all" /-->
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="templates" />
   </ItemGroup>
 
 </Project>
