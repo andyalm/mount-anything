@@ -5,4 +5,6 @@
     <CompilerVisibleProperty Include="ProjectName" />
     <CompilerVisibleProperty Include="ImplAssemblyName" />
   </ItemGroup>
+  <UsingTask TaskName="MountAnything.Build.StageMountAnythingHostProject"
+             AssemblyFile="$(MSBuildThisFileDirectory)MountAnything.Build.dll" />
 </Project>

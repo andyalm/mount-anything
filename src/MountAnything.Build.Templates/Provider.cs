@@ -12,13 +12,9 @@ public partial class Provider : NavigationCmdletProvider,
     IPropertyCmdletProvider,
     IProviderHost
 {
-    private static readonly Lazy<IProviderImpl> _provider;
+    private static readonly object _providerMutex = new();
+    private static IProviderImpl? _providerImpl;
 
-    public Provider()
-    {
-        _provider = new Lazy<IProviderImpl>(LoadProviderImplIsolatedContext);
-    }
-    
     private IProviderImpl LoadProviderImplIsolatedContext()
     {
         var implAssembly = LoadImplAssembly("MyImplAssemblyName");
@@ -27,7 +23,7 @@ public partial class Provider : NavigationCmdletProvider,
             .GetExportedTypes()
             .Single(t => typeof(IProviderImpl).IsAssignableFrom(t));
 
-        return (IProviderImpl)Activator.CreateInstance(providerImplType, this, frameworkAssembly)!;
+        return (IProviderImpl)Activator.CreateInstance(providerImplType, frameworkAssembly)!;
     }
 
     private static Assembly LoadImplAssembly(string assemblyName)
@@ -38,72 +34,93 @@ public partial class Provider : NavigationCmdletProvider,
         
         return assemblyLoadContext.LoadFromAssemblyName(new AssemblyName(assemblyName));
     }
+
+    private IProviderImpl ProviderImpl
+    {
+        get
+        {
+            if (_providerImpl == null)
+            {
+                lock (_providerMutex)
+                {
+                    if (_providerImpl == null)
+                    {
+                        _providerImpl = LoadProviderImplIsolatedContext();
+                    }
+                }
+            }
+
+            ProviderHostAccessor.Current = this;
+
+            return _providerImpl;
+        }
+    }
     
-    protected override bool IsValidPath(string path) => _provider.Value.ItemExists(path);
+    protected override bool IsValidPath(string path) => ProviderImpl.ItemExists(path);
     protected override bool ItemExists(string path)
     {
-        return _provider.Value.ItemExists(path);
+        return ProviderImpl.ItemExists(path);
     }
 
     protected override object? ItemExistsDynamicParameters(string path)
     {
-        return _provider.Value.ItemExistsDynamicParameters(path);
+        return ProviderImpl.ItemExistsDynamicParameters(path);
     }
 
     protected override void GetItem(string path)
     {
-        _provider.Value.GetItem(path);
+        ProviderImpl.GetItem(path);
     }
 
     protected override object? GetItemDynamicParameters(string path)
     {
-        return _provider.Value.GetItemDynamicParameters(path);
+        return ProviderImpl.GetItemDynamicParameters(path);
     }
     
     protected override void GetChildItems(string path, bool recurse, uint depth)
     {
-        _provider.Value.GetChildItems(path, recurse, depth);
+        ProviderImpl.GetChildItems(path, recurse, depth);
     }
     
 
     protected override object? GetChildItemsDynamicParameters(string path, bool recurse)
     {
-        return _provider.Value.GetChildItemsDynamicParameters(path, recurse);
+        return ProviderImpl.GetChildItemsDynamicParameters(path, recurse);
     }
     
     protected override bool HasChildItems(string path)
     {
-        return _provider.Value.HasChildItems(path);
+        return ProviderImpl.HasChildItems(path);
     }
 
     protected override bool IsItemContainer(string path)
     {
-        return _provider.Value.IsItemContainer(path);
+        return ProviderImpl.IsItemContainer(path);
     }
 
     protected override void NewItem(string path, string itemTypeName, object? newItemValue)
     {
-        _provider.Value.NewItem(path, itemTypeName, newItemValue);
+        ProviderImpl.NewItem(path, itemTypeName, newItemValue);
     }
 
     protected override object? NewItemDynamicParameters(string path, string itemTypeName, object newItemValue)
     {
-        return _provider.Value.NewItemDynamicParameters(path, itemTypeName, newItemValue);
+        return ProviderImpl.NewItemDynamicParameters(path, itemTypeName, newItemValue);
     }
 
     protected override void RemoveItem(string path, bool recurse)
     {
-        _provider.Value.RemoveItem(path, recurse);
+        ProviderImpl.RemoveItem(path, recurse);
     }
 
     protected override object? RemoveItemDynamicParameters(string path, bool recurse)
     {
-        return _provider.Value.RemoveItemDynamicParameters(path, recurse);
+        return ProviderImpl.RemoveItemDynamicParameters(path, recurse);
     }
 
     protected override void GetChildNames(string path, ReturnContainers returnContainers)
     {
-        _provider.Value.GetChildNames(path, returnContainers);
+        ProviderImpl.GetChildNames(path, returnContainers);
     }
 
     void IProviderHost.GetChildNamesDefaultImpl(string path, ReturnContainers returnContainers)
@@ -113,17 +130,17 @@ public partial class Provider : NavigationCmdletProvider,
 
     protected override object? GetChildNamesDynamicParameters(string path)
     {
-        return _provider.Value.GetChildNamesDynamicParameters(path);
+        return ProviderImpl.GetChildNamesDynamicParameters(path);
     }
 
     protected override string[] ExpandPath(string path)
     {
-        return _provider.Value.ExpandPath(path);
+        return ProviderImpl.ExpandPath(path);
     }
 
     protected override bool ConvertPath(string path, string filter, ref string updatedPath, ref string updatedFilter)
     {
-        return _provider.Value.ConvertPath(path, filter, ref updatedPath, ref updatedFilter);
+        return ProviderImpl.ConvertPath(path, filter, ref updatedPath, ref updatedFilter);
     }
     
     bool IProviderHost.ConvertPathDefaultImpl(string path, string filter, ref string updatedPath, ref string updatedFilter)
@@ -147,129 +164,129 @@ public partial class Provider : NavigationCmdletProvider,
 
     protected override ProviderInfo Start(ProviderInfo providerInfo)
     {
-        return _provider.Value.Start(providerInfo);
+        return ProviderImpl.Start(providerInfo);
     }
 
     protected override object? StartDynamicParameters()
     {
-        return _provider.Value.StartDynamicParameters();
+        return ProviderImpl.StartDynamicParameters();
     }
 
     protected override void Stop()
     {
-        _provider.Value.Stop();
+        ProviderImpl.Stop();
     }
 
     protected override void CopyItem(string path, string copyPath, bool recurse)
     {
-        _provider.Value.CopyItem(path, copyPath, recurse);
+        ProviderImpl.CopyItem(path, copyPath, recurse);
     }
 
     protected override object? CopyItemDynamicParameters(string path, string destination, bool recurse)
     {
-        return _provider.Value.CopyItemDynamicParameters(path, destination, recurse);
+        return ProviderImpl.CopyItemDynamicParameters(path, destination, recurse);
     }
 
     protected override void MoveItem(string path, string destination)
     {
-        _provider.Value.MoveItem(path, destination);
+        ProviderImpl.MoveItem(path, destination);
     }
 
     protected override object? MoveItemDynamicParameters(string path, string destination)
     {
-        return _provider.Value.MoveItemDynamicParameters(path, destination);
+        return ProviderImpl.MoveItemDynamicParameters(path, destination);
     }
 
     protected override void RenameItem(string path, string newName)
     {
-        _provider.Value.RenameItem(path, newName);
+        ProviderImpl.RenameItem(path, newName);
     }
 
     protected override object? RenameItemDynamicParameters(string path, string newName)
     {
-        return _provider.Value.RenameItemDynamicParameters(path, newName);
+        return ProviderImpl.RenameItemDynamicParameters(path, newName);
     }
 
     protected override void ClearItem(string path)
     {
-        _provider.Value.ClearItem(path);
+        ProviderImpl.ClearItem(path);
     }
 
     protected override object? ClearItemDynamicParameters(string path)
     {
-        return _provider.Value.ClearItemDynamicParameters(path);
+        return ProviderImpl.ClearItemDynamicParameters(path);
     }
 
     protected override void SetItem(string path, object value)
     {
-        _provider.Value.SetItem(path, value);
+        ProviderImpl.SetItem(path, value);
     }
 
     protected override object? SetItemDynamicParameters(string path, object value)
     {
-        return _provider.Value.SetItemDynamicParameters(path, value);
+        return ProviderImpl.SetItemDynamicParameters(path, value);
     }
 
     protected override void InvokeDefaultAction(string path)
     {
-        _provider.Value.InvokeDefaultAction(path);
+        ProviderImpl.InvokeDefaultAction(path);
     }
 
     protected override object? InvokeDefaultActionDynamicParameters(string path)
     {
-        return _provider.Value.InvokeDefaultActionDynamicParameters(path);
+        return ProviderImpl.InvokeDefaultActionDynamicParameters(path);
     }
 
     protected override PSDriveInfo NewDrive(PSDriveInfo drive)
     {
-        return _provider.Value.NewDrive(drive);
+        return ProviderImpl.NewDrive(drive);
     }
 
     protected override object? NewDriveDynamicParameters()
     {
-        return _provider.Value.NewDriveDynamicParameters();
+        return ProviderImpl.NewDriveDynamicParameters();
     }
 
     protected override PSDriveInfo RemoveDrive(PSDriveInfo drive)
     {
-        return _provider.Value.RemoveDrive(drive);
+        return ProviderImpl.RemoveDrive(drive);
     }
 
     protected override Collection<PSDriveInfo> InitializeDefaultDrives()
     {
-        return _provider.Value.InitializeDefaultDrives();
+        return ProviderImpl.InitializeDefaultDrives();
     }
 
     #region Content
 
     public void ClearContent(string path)
     {
-        _provider.Value.ClearContent(path);
+        ProviderImpl.ClearContent(path);
     }
 
     public object? ClearContentDynamicParameters(string path)
     {
-        return _provider.Value.ClearContentDynamicParameters(path);
+        return ProviderImpl.ClearContentDynamicParameters(path);
     }
 
     public IContentReader GetContentReader(string path)
     {
-        return _provider.Value.GetContentReader(path);
+        return ProviderImpl.GetContentReader(path);
     }
 
     public object? GetContentReaderDynamicParameters(string path)
     {
-        return _provider.Value.GetContentReaderDynamicParameters(path);
+        return ProviderImpl.GetContentReaderDynamicParameters(path);
     }
 
     public IContentWriter GetContentWriter(string path)
     {
-        return _provider.Value.GetContentWriter(path);
+        return ProviderImpl.GetContentWriter(path);
     }
 
     public object? GetContentWriterDynamicParameters(string path)
     {
-        return _provider.Value.GetContentWriterDynamicParameters(path);
+        return ProviderImpl.GetContentWriterDynamicParameters(path);
     }
 
     #endregion
@@ -278,32 +295,32 @@ public partial class Provider : NavigationCmdletProvider,
 
     public void ClearProperty(string path, Collection<string> propertyToClear)
     {
-        _provider.Value.ClearProperty(path, propertyToClear);
+        ProviderImpl.ClearProperty(path, propertyToClear);
     }
 
     public object? ClearPropertyDynamicParameters(string path, Collection<string> propertyToClear)
     {
-        return _provider.Value.ClearPropertyDynamicParameters(path, propertyToClear);
+        return ProviderImpl.ClearPropertyDynamicParameters(path, propertyToClear);
     }
 
     public void GetProperty(string path, Collection<string> providerSpecificPickList)
     {
-        _provider.Value.GetProperty(path, providerSpecificPickList);
+        ProviderImpl.GetProperty(path, providerSpecificPickList);
     }
 
     public object? GetPropertyDynamicParameters(string path, Collection<string> providerSpecificPickList)
     {
-        return _provider.Value.GetPropertyDynamicParameters(path, providerSpecificPickList);
+        return ProviderImpl.GetPropertyDynamicParameters(path, providerSpecificPickList);
     }
 
     public void SetProperty(string path, PSObject propertyValue)
     {
-        _provider.Value.SetProperty(path, propertyValue);
+        ProviderImpl.SetProperty(path, propertyValue);
     }
 
     public object? SetPropertyDynamicParameters(string path, PSObject propertyValue)
     {
-        return _provider.Value.SetPropertyDynamicParameters(path, propertyValue);
+        return ProviderImpl.SetPropertyDynamicParameters(path, propertyValue);
     }
 
     #endregion

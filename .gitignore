@@ -4,3 +4,5 @@
 .idea/
 .vs/
 .DS_Store
+src/MountAnything.Build/build/*.dll
+src/MountAnything.Build/build/*.pdb

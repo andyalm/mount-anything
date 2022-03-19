@@ -11,33 +11,35 @@
   </PropertyGroup>
   
   <ItemGroup Label="dotnet pack instructions">
-    <Content Include="build\*.props">
+    <Content Include="build\*.props;build\*.targets">
       <Pack>true</Pack>
       <PackagePath>build\</PackagePath>
+    </Content>
+    <Content Include="$(OutputPath)\$(AssemblyName).dll">
+      <Pack>true</Pack>
+      <PackagePath>build\</PackagePath>
+      <Visible>false</Visible>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Package the generator in the analyzer directory of the nuget package -->
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.1.0" />
   </ItemGroup>
   
   <ItemGroup>
     <EmbeddedResource Include="..\MountAnything.Build.Templates\Provider.cs" Link="templates\Provider.cs" />
     <EmbeddedResource Include="..\MountAnything.Build.Templates\ProviderAssemblyContext.cs" Link="templates\ProviderAssemblyContext.cs" />
     <Compile Remove="templates\*.cs" />
+    <EmbeddedResource Include="templates\Host.csproj" />
   </ItemGroup>
   
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.8.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
-    <!-- Don't cascade the powershell dependency here. Its only here to make IDE properly highlight the MountAnythingProvider -->
-    <!--PackageReference Include="System.Management.Automation" Version="7.2.0" PrivateAssets="all" /-->
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="templates" />
-  </ItemGroup>
+  <!-- This is here to facilitate running from a ProjectReference. Is not necessary for generating the package -->
+  <Target Name="CopyOutputToBuildFolder" AfterTargets="Build">
+    <ItemGroup>
+      <TasksAssembly Include="$(OutputPath)\$(AssemblyName).dll" />
+      <TasksAssembly Include="$(OutputPath)\$(AssemblyName).pdb" />
+    </ItemGroup>
+    <Copy SourceFiles="@(TasksAssembly)" DestinationFolder="build" />
+  </Target>
 
 </Project>

@@ -6,13 +6,12 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <PowershellProviderName>MountPowershell</PowershellProviderName>
+    <HostingAbstractionsProjectLocation>$(MSBuildProjectDirectory)\..\..\src\MountAnything.Hosting.Abstractions\MountAnything.Hosting.Abstractions.csproj</HostingAbstractionsProjectLocation>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\MountAnything.Build\MountAnything.Build.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" OutputItemType="Analyzer">
-    </ProjectReference>
+    <ProjectReference Include="..\..\src\MountAnything.Build\MountAnything.Build.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\MountAnything\MountAnything.csproj" />
   </ItemGroup>
 
@@ -20,4 +19,6 @@
     <PackageReference Include="System.Management.Automation" Version="7.2.1" />
   </ItemGroup>
 
+  <!-- hack needed here because build assets are ignored in ProjectReferences -->
+  <Import Project="..\..\src\MountAnything.Build\build\MountAnything.Build.targets" />
 </Project>

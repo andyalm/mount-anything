@@ -1,0 +1,17 @@
+<Project>
+  <Target Name="BuildHost" AfterTargets="Build">
+    <Error Condition="$(PowershellProviderName)==''" Text="Please set the property 'PowershellProviderName' in the $(ProjectName).csproj project" />
+    <PropertyGroup>
+      <StagingDir>$(IntermediateOutputPath)\Host</StagingDir>
+    </PropertyGroup>
+    <StageMountAnythingHostProject
+      PowershellProviderName="$(PowershellProviderName)"
+      ImplAssemblyName="$(AssemblyName)"
+      RootNamespace="$(RootNamespace)"
+      StagingDir="$(IntermediateOutputPath)\Host" />
+    <ItemGroup>
+      <HostProject Include="$(IntermediateOutputPath)\Host\$(PowershellProviderName).Host.csproj" />
+    </ItemGroup>
+    <MSBuild Projects="@(HostProject)" Targets="Restore;Build" Properties="HostingAbstractionsProjectLocation=$(HostingAbstractionsProjectLocation)" />
+  </Target>
+</Project>

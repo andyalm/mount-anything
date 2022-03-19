@@ -13,18 +13,17 @@ namespace MountAnything;
 
 public class ProviderImpl : IProviderImpl, IPathHandlerContext
 {
-    private readonly IProviderHost _host;
     private readonly Assembly _entrypointAssembly;
-    private readonly Lazy<Cache> _cache;
-    private readonly Lazy<Router> _router;
+    private readonly Cache _cache;
+    private readonly Router _router;
 
-    public ProviderImpl(IProviderHost host, Assembly entrypointAssembly)
+    private IProviderHost Host => ProviderHostAccessor.Current;
+
+    public ProviderImpl(Assembly entrypointAssembly)
     {
-        _host = host;
         _entrypointAssembly = entrypointAssembly;
-        //TODO: Get rid of lazy
-        _cache = new Lazy<Cache>(() => new Cache());
-        _router = new Lazy<Router>(() => LoadRouterViaIsolatedContext());
+        _cache = new Cache();
+        _router = LoadRouterViaIsolatedContext();
     }
 
     private Router LoadRouterViaIsolatedContext()
@@ -41,11 +40,11 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         return routerFactory.CreateRouter();
     }
 
-    private Router Router => _router.Value;
-    public Cache Cache => _cache.Value;
+    private Router Router => _router;
+    public Cache Cache => _cache;
     
-    bool IPathHandlerContext.Force => _host.Force;
-    CommandInvocationIntrinsics IPathHandlerContext.InvokeCommand => _host.InvokeCommand;
+    bool IPathHandlerContext.Force => Host.Force;
+    CommandInvocationIntrinsics IPathHandlerContext.InvokeCommand => Host.InvokeCommand;
 
     public ProviderInfo Start(ProviderInfo providerInfo)
     {
@@ -348,13 +347,13 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public string ToFullyQualifiedProviderPath(ItemPath path)
     {
-        return $"{_host.PSDriveInfo.Name}:{ToProviderPath(path)}";
+        return $"{Host.PSDriveInfo.Name}:{ToProviderPath(path)}";
     }
 
     public void GetChildNames(string path, ReturnContainers returnContainers)
     {
         WriteDebug($"GetChildNames({path}, {returnContainers})");
-        _host.GetChildNamesDefaultImpl(path, returnContainers);
+        Host.GetChildNamesDefaultImpl(path, returnContainers);
     }
 
     public object? GetChildNamesDynamicParameters(string path)
@@ -417,7 +416,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     public bool ConvertPath(string path, string filter, ref string updatedPath, ref string updatedFilter)
     {
         WriteDebug($"ConvertPath({path}, {filter})");
-        return _host.ConvertPathDefaultImpl(path, filter, ref updatedPath, ref updatedFilter);
+        return Host.ConvertPathDefaultImpl(path, filter, ref updatedPath, ref updatedFilter);
     }
 
     #region Content
@@ -517,24 +516,24 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     #endregion
 
 
-    private void WriteError(ErrorRecord error) => _host.WriteError(error);
+    private void WriteError(ErrorRecord error) => Host.WriteError(error);
     void IPathHandlerContext.WriteWarning(string message) => WriteWarning(message);
-    private void WriteWarning(string message) => _host.WriteWarning(message);
+    private void WriteWarning(string message) => Host.WriteWarning(message);
 
     void IPathHandlerContext.WriteDebug(string message) => WriteDebug(message);
-    private void WriteDebug(string text) => _host.WriteDebug(text);
+    private void WriteDebug(string text) => Host.WriteDebug(text);
 
     private void WritePropertyObject(object propertyValue, string path) =>
-        _host.WritePropertyObject(propertyValue, path);
+        Host.WritePropertyObject(propertyValue, path);
 
     private void WriteItemObject(object item, string path, bool isContainer) =>
-        _host.WriteItemObject(item, path, isContainer);
+        Host.WriteItemObject(item, path, isContainer);
 
-    private char ItemSeparator => _host.ItemSeparator;
+    private char ItemSeparator => Host.ItemSeparator;
 
-    private object? DynamicParameters => _host.DynamicParameters;
+    private object? DynamicParameters => Host.DynamicParameters;
 
-    private string? Filter => _host.Filter;
+    private string? Filter => Host.Filter;
 
     private Exception NotImplemented()
     {
