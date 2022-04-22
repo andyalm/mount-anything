@@ -8,6 +8,15 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <LangVersion>Latest</LangVersion>
     <NoPackageAnalysis>true</NoPackageAnalysis>
+    <PackageVersion Condition="$(PackageReleaseTag) != ''">$(PackageReleaseTag.Substring(1))</PackageVersion>
+    <PackageVersion Condition="$(PackageVersion)==''">0.0.1-dev</PackageVersion>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/andyalm/mount-anything</RepositoryUrl>
+    <Authors>Andy Alm</Authors>
+    <PackageTags>powershell;mount;drive;psdrive;</PackageTags>
+    <Copyright>2022 Andy Alm</Copyright>
+    <Title>Mount Anything Build</Title>
+    <Description>A framework for building powershell providers to make it easy to navigate arbitrary API's as a hierarchical virtual filesystem of objects. The MountAnything.Build package should be installed in the package that will contain the generated powershell provider.</Description>
   </PropertyGroup>
   
   <ItemGroup Label="dotnet pack instructions">
