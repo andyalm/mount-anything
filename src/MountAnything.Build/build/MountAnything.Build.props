@@ -1,4 +1,7 @@
 <Project>
+  <PropertyGroup>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
   <ItemGroup>
     <CompilerVisibleProperty Include="PowershellProviderName" />
     <CompilerVisibleProperty Include="RootNamespace" />

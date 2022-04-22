@@ -16,11 +16,11 @@ internal class ProviderAssemblyContext : AssemblyLoadContext
     {
         string assemblyPath = Path.Combine(DependencyPath, $"{assemblyName.Name}.dll");
 
-        if (!File.Exists(assemblyPath))
+        // we don't want to load the Hosting.Abstractions assembly in this isolated AssemblyLoadContext, we want it to use the version from the global context
+        if (!File.Exists(assemblyPath) || assemblyName.Name == "MountAnything.Hosting.Abstractions")
         {
             return null;
         }
-        
         return LoadFromAssemblyPath(assemblyPath);
     }
 }

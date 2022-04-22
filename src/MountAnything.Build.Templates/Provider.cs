@@ -2,6 +2,7 @@
 using System.Management.Automation;
 using System.Management.Automation.Provider;
 using System.Reflection;
+using System.Runtime.Loader;
 using MountAnything.Hosting.Abstractions;
 
 namespace MountAnything.Build;
@@ -14,25 +15,27 @@ public partial class Provider : NavigationCmdletProvider,
 {
     private static readonly object _providerMutex = new();
     private static IProviderImpl? _providerImpl;
+    private static AssemblyLoadContext? _implAssemblyLoadContext;
 
     private IProviderImpl LoadProviderImplIsolatedContext()
     {
-        var implAssembly = LoadImplAssembly("MyImplAssemblyName");
-        var frameworkAssembly = LoadImplAssembly("MountAnything");
-        var providerImplType = implAssembly
+        var modulePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        var apiAssemblyDir = Path.Combine(modulePath, "Impl");
+        _implAssemblyLoadContext = new ProviderAssemblyContext(apiAssemblyDir);
+        var implAssembly = _implAssemblyLoadContext.LoadFromAssemblyName(new AssemblyName("MyImplAssemblyName"));
+        var frameworkAssembly = _implAssemblyLoadContext.LoadFromAssemblyName(new AssemblyName("MountAnything"));
+        var providerImplType = frameworkAssembly
             .GetExportedTypes()
             .Single(t => typeof(IProviderImpl).IsAssignableFrom(t));
 
-        return (IProviderImpl)Activator.CreateInstance(providerImplType, frameworkAssembly)!;
-    }
-
-    private static Assembly LoadImplAssembly(string assemblyName)
-    {
-        var modulePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-        var apiAssemblyDir = Path.Combine(modulePath, "Impl");
-        var assemblyLoadContext = new ProviderAssemblyContext(apiAssemblyDir);
-        
-        return assemblyLoadContext.LoadFromAssemblyName(new AssemblyName(assemblyName));
+        try
+        {
+            return (IProviderImpl)Activator.CreateInstance(providerImplType, implAssembly)!;
+        }
+        catch (TargetInvocationException ex)
+        {
+            throw ex.InnerException!;
+        }
     }
 
     private IProviderImpl ProviderImpl
@@ -329,6 +332,5 @@ public partial class Provider : NavigationCmdletProvider,
     bool IProviderHost.Force => Force.IsPresent;
     char IProviderHost.ItemSeparator => ItemSeparator;
     PSDriveInfo IProviderHost.PSDriveInfo => PSDriveInfo;
-    
-    
+    ProviderInfo IProviderHost.ProviderInfo => ProviderInfo;
 }

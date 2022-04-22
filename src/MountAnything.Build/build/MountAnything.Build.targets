@@ -3,15 +3,26 @@
     <Error Condition="$(PowershellProviderName)==''" Text="Please set the property 'PowershellProviderName' in the $(ProjectName).csproj project" />
     <PropertyGroup>
       <StagingDir>$(IntermediateOutputPath)\Host</StagingDir>
+      <HostOutputDir>$(OutputPath)\Host</HostOutputDir>
+      <ImplOutputDir>$(OutputPath)\Host\Impl</ImplOutputDir>
     </PropertyGroup>
     <StageMountAnythingHostProject
       PowershellProviderName="$(PowershellProviderName)"
       ImplAssemblyName="$(AssemblyName)"
       RootNamespace="$(RootNamespace)"
-      StagingDir="$(IntermediateOutputPath)\Host" />
+      StagingDir="$(StagingDir)" />
+    <MakeDir Directories="$(HostOutputDir)" />
     <ItemGroup>
-      <HostProject Include="$(IntermediateOutputPath)\Host\$(PowershellProviderName).Host.csproj" />
+      <HostProject Include="$(StagingDir)\$(PowershellProviderName).Host.csproj" />
     </ItemGroup>
     <MSBuild Projects="@(HostProject)" Targets="Restore;Build" Properties="HostingAbstractionsProjectLocation=$(HostingAbstractionsProjectLocation)" />
+    <ItemGroup>
+      <HostBin Include="$(StagingDir)\bin\$(Configuration)\net6.0\**\*.*" />
+      <ImplBin Include="$(OutputPath)\**\*.*" Exclude="$(HostOutputDir)\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(HostBin)" DestinationFiles="$(HostOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Copy SourceFiles="@(ImplBin)" DestinationFiles="$(ImplOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Exec Command="pwsh -File CreateManifest.ps1 $(PowershellProviderName) &quot;$(MSBuildProjectDirectory)\$(HostOutputDir)&quot; -PackageVersion $(PackageVersion)"
+          WorkingDirectory="$(MSBuildThisFileDirectory)"/>
   </Target>
 </Project>

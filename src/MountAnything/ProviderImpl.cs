@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Management.Automation.Provider;
@@ -15,6 +14,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 {
     private readonly Assembly _entrypointAssembly;
     private readonly Cache _cache;
+    private readonly IMountAnythingProvider _mountAnythingProvider;
     private readonly Router _router;
 
     private IProviderHost Host => ProviderHostAccessor.Current;
@@ -23,21 +23,21 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     {
         _entrypointAssembly = entrypointAssembly;
         _cache = new Cache();
-        _router = LoadRouterViaIsolatedContext();
+        (_mountAnythingProvider, _router) = LoadRouter();
     }
 
-    private Router LoadRouterViaIsolatedContext()
+    private (IMountAnythingProvider, Router) LoadRouter()
     {
         var routerFactoryType = _entrypointAssembly.GetExportedTypes()
-            .SingleOrDefault(t => typeof(IRouterFactory).IsAssignableFrom(t));
+            .SingleOrDefault(t => typeof(IMountAnythingProvider).IsAssignableFrom(t));
         if (routerFactoryType == null)
         {
             throw new InvalidOperationException(
-                $"Could not find a public type that implements IRouterFactory in assembly {_entrypointAssembly.FullName}");
+                $"Could not find a public type that implements IMountAnythingProvider in assembly {_entrypointAssembly.FullName}");
         }
 
-        var routerFactory = (IRouterFactory)Activator.CreateInstance(routerFactoryType)!;
-        return routerFactory.CreateRouter();
+        var routerFactory = (IMountAnythingProvider)Activator.CreateInstance(routerFactoryType)!;
+        return (routerFactory, routerFactory.CreateRouter());
     }
 
     private Router Router => _router;
@@ -242,7 +242,13 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public Collection<PSDriveInfo> InitializeDefaultDrives()
     {
-        return new Collection<PSDriveInfo>();
+        var defaultDrives = _mountAnythingProvider
+            .GetDefaultDrives()
+            .Select(defaultDrive => new PSDriveInfo(defaultDrive.Name, Host.ProviderInfo, ItemSeparator.ToString(),
+                defaultDrive.Description, null))
+            .ToList();
+
+        return new Collection<PSDriveInfo>(defaultDrives);
     }
 
     public void RenameItem(string path, string newName)

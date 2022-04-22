@@ -6,7 +6,7 @@ public class StageMountAnythingHostProject : Microsoft.Build.Utilities.Task
 {
     [Required]
     public string? PowershellProviderName { get; set; }
-    
+
     [Required]
     public string? ImplAssemblyName { get; set; }
     

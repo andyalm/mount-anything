@@ -9,6 +9,7 @@ public interface IProviderHost
     string? Filter { get; }
     char ItemSeparator { get; }
     PSDriveInfo PSDriveInfo { get; }
+    ProviderInfo ProviderInfo { get; }
     
     CommandInvocationIntrinsics InvokeCommand { get; }
     

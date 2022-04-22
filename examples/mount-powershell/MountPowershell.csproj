@@ -15,10 +15,6 @@
     <ProjectReference Include="..\..\src\MountAnything\MountAnything.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="System.Management.Automation" Version="7.2.1" />
-  </ItemGroup>
-
   <!-- hack needed here because build assets are ignored in ProjectReferences -->
   <Import Project="..\..\src\MountAnything.Build\build\MountAnything.Build.targets" />
 </Project>
