@@ -8,7 +8,7 @@ using MountAnything.Hosting.Abstractions;
 namespace MountAnything.Build;
 
 [CmdletProvider("MyProviderName", ProviderCapabilities.Filter | ProviderCapabilities.ExpandWildcards)]
-public partial class Provider : NavigationCmdletProvider,
+public class Provider : NavigationCmdletProvider,
     IContentCmdletProvider,
     IPropertyCmdletProvider,
     IProviderHost
@@ -19,9 +19,7 @@ public partial class Provider : NavigationCmdletProvider,
 
     private IProviderImpl LoadProviderImplIsolatedContext()
     {
-        var modulePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-        var apiAssemblyDir = Path.Combine(modulePath, "Impl");
-        _implAssemblyLoadContext = new ProviderAssemblyContext(apiAssemblyDir);
+        _implAssemblyLoadContext = CreateAssemblyLoadContext();
         var implAssembly = _implAssemblyLoadContext.LoadFromAssemblyName(new AssemblyName("MyImplAssemblyName"));
         var frameworkAssembly = _implAssemblyLoadContext.LoadFromAssemblyName(new AssemblyName("MountAnything"));
         var providerImplType = frameworkAssembly
@@ -36,6 +34,13 @@ public partial class Provider : NavigationCmdletProvider,
         {
             throw ex.InnerException!;
         }
+    }
+
+    private static AssemblyLoadContext CreateAssemblyLoadContext()
+    {
+        var modulePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        var apiAssemblyDir = Path.Combine(modulePath, "Impl");
+        return new ProviderAssemblyContext(apiAssemblyDir);
     }
 
     private IProviderImpl ProviderImpl
@@ -153,16 +158,12 @@ public partial class Provider : NavigationCmdletProvider,
 
     protected override string NormalizeRelativePath(string path, string basePath)
     {
-        var returnValue = base.NormalizeRelativePath(path, basePath);
-        //HACK to make tab completion on top level directories work (I'm calling it a hack because I don't understand why its necessary)
-        if (returnValue.StartsWith(ItemSeparator) && basePath == ItemSeparator.ToString())
-        {
-            returnValue = returnValue.Substring(1);
-        }
-
-        WriteDebug($"{returnValue} NormalizeRelativePath({path}, {basePath})");
-
-        return returnValue;
+        return ProviderImpl.NormalizeRelativePath(path, basePath);
+    }
+    
+    string IProviderHost.NormalizeRelativePathDefaultImpl(string path, string basePath)
+    {
+        return base.NormalizeRelativePath(path, basePath);
     }
 
     protected override ProviderInfo Start(ProviderInfo providerInfo)

@@ -355,6 +355,20 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     {
         return $"{Host.PSDriveInfo.Name}:{ToProviderPath(path)}";
     }
+    
+    public string NormalizeRelativePath(string path, string basePath)
+    {
+        var returnValue = Host.NormalizeRelativePathDefaultImpl(path, basePath);
+        //HACK to make tab completion on top level directories work (I'm calling it a hack because I don't understand why its necessary)
+        if (returnValue.StartsWith(ItemSeparator) && basePath == ItemSeparator.ToString())
+        {
+            returnValue = returnValue.Substring(1);
+        }
+
+        WriteDebug($"{returnValue} NormalizeRelativePath({path}, {basePath})");
+
+        return returnValue;
+    }
 
     public void GetChildNames(string path, ReturnContainers returnContainers)
     {

@@ -22,4 +22,5 @@ public interface IProviderHost
 
     bool ConvertPathDefaultImpl(string path, string filter, ref string updatedPath, ref string updatedFilter);
     void GetChildNamesDefaultImpl(string path, ReturnContainers returnContainers);
+    string NormalizeRelativePathDefaultImpl(string path, string basePath);
 }

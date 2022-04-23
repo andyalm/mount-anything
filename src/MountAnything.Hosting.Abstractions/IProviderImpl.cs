@@ -845,6 +845,33 @@ public interface IProviderImpl
     /// The default implementation of this method throws an <see cref="System.Management.Automation.PSNotSupportedException"/>.
     /// </remarks>
     bool IsItemContainer(string path);
+    
+    /// <summary>
+    /// Normalizes the path that was passed in and returns the normalized path
+    /// as a relative path to the basePath that was passed.
+    /// </summary>
+    /// <param name="path">
+    /// A fully qualified provider specific path to an item. The item should exist
+    /// or the provider should write out an error.
+    /// </param>
+    /// <param name="basePath">
+    /// The path that the return value should be relative to.
+    /// </param>
+    /// <returns>
+    /// A normalized path that is relative to the basePath that was passed. The
+    /// provider should parse the path parameter, normalize the path, and then
+    /// return the normalized path relative to the basePath.
+    /// </returns>
+    /// <remarks>
+    /// This method does not have to be purely syntactical parsing of the path. It
+    /// is encouraged that the provider actually use the path to lookup in its store
+    /// and create a relative path that matches the casing, and standardized path syntax.
+    /// 
+    /// Note, the base class implementation uses GetParentPath, GetChildName, and MakePath
+    /// to normalize the path and then make it relative to basePath. All string comparisons
+    /// are done using StringComparison.InvariantCultureIgnoreCase.
+    /// </remarks>
+    string NormalizeRelativePath(string path, string basePath);
 
     /// <summary>
     /// Moves the item specified by path to the specified destination.
