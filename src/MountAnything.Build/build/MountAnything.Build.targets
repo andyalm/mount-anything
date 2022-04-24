@@ -19,10 +19,11 @@
     <ItemGroup>
       <HostBin Include="$(StagingDir)\bin\$(Configuration)\net6.0\**\*.*" />
       <ImplBin Include="$(OutputPath)\**\*.*" Exclude="$(HostOutputDir)\**\*.*" />
-      <RootModule Include="$(MSBuildProjectDirectory)\$(HostOutputDir)\$(PowershellProviderName).Host.dll" />
-      <ModuleManifest Include="$(MSBuildProjectDirectory)\$(HostOutputDir)\$(PowershellProviderName).psd1" />
+      <ModuleManifest Include="$(PowershellProviderName).psd1" />
+      <RootModule Include="$(PowershellProviderName).Host.dll" />
     </ItemGroup>
     <Copy SourceFiles="@(HostBin)" DestinationFiles="$(HostOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Copy SourceFiles="@(FormatFile)" DestinationFiles="$(HostOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
     <Copy SourceFiles="@(ImplBin)" DestinationFiles="$(ImplOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
     <CreateModuleManifest 
       Path="@(ModuleManifest)"

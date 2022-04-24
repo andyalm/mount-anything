@@ -9,8 +9,19 @@ internal static class PwshCommandBuilder
     {
         if (item != null)
         {
-            builder.Append($" -{parameterName} \"{item.FullPath()}\"");
+            builder.Append($" -{parameterName} \"{item.ItemSpec}\"");
         }
+    }
+    public static void AddParameter(this StringBuilder builder, string parameterName, ICollection<ITaskItem> items)
+    {
+        var serializedItemArray = string.Join(",", items.Select(i => $"\"{i.ItemSpec}\""));
+        builder.Append($" -{parameterName} @({serializedItemArray})");
+    }
+    
+    public static void AddParameter(this StringBuilder builder, string parameterName, ICollection<string> values)
+    {
+        var serializedArray = string.Join(",", values.Select(v => $"\"{v}\""));
+        builder.Append($" -{parameterName} @({serializedArray})");
     }
     
     public static void AddParameter(this StringBuilder builder, string parameterName, string? value)

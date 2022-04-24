@@ -42,10 +42,21 @@ public class CreateModuleManifest : Microsoft.Build.Utilities.Task
     {
         try
         {
-            var command = new StringBuilder($"New-ModuleManifest -Path \"{Path.FullPath()}\"");
+            var command = new StringBuilder($"New-ModuleManifest -Path \"{Path.ItemSpec}\"");
             command.AddParameter(nameof(RootModule), RootModule);
             command.AddParameter(nameof(ModuleVersion), ModuleVersion);
             command.AddParameter(nameof(PowershellVersion), PowershellVersion);
+            command.AddParameter(nameof(Author), Author);
+            command.AddParameter(nameof(Copyright), Copyright);
+            command.AddParameter(nameof(Description), Description);
+            command.AddParameter(nameof(ReleaseNotes), ReleaseNotes);
+            command.AddParameter(nameof(FormatsToProcess), FormatsToProcess);
+            command.AddParameter(nameof(NestedModules), NestedModules);
+            command.AddParameter(nameof(RequiredModules), RequiredModules);
+            command.AddParameter(nameof(FunctionsToExport), FunctionsToExport);
+            command.AddParameter(nameof(VariablesToExport), VariablesToExport);
+            command.AddParameter(nameof(CmdletsToExport), CmdletsToExport);
+            command.AddParameter(nameof(AliasesToExport), AliasesToExport);
 
             this.ExecTask(() => new Exec
             {
