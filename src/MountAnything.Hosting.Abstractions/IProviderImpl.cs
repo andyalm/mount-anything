@@ -493,7 +493,7 @@ public interface IProviderImpl
     /// Providers that declare <see cref="System.Management.Automation.Provider.ProviderCapabilities"/>
     /// of ExpandWildcards, Filter, Include, or Exclude should ensure that the path passed meets those
     /// requirements by accessing the appropriate property from the base class. The exception to this
-    /// is if <paramref name="returnAllContainers"/> is true, then any child name for a container should
+    /// is if <paramref name="returnContainers"/> is true, then any child name for a container should
     /// be returned even if it doesn't match the Filter, Include, or Exclude.
     ///
     /// By default overrides of this method should not write the names of objects that are generally hidden from
@@ -639,7 +639,7 @@ public interface IProviderImpl
     /// the new-item cmdlet.
     ///
     /// The <paramref name="itemTypeName"/> parameter is a provider specific string that the user specifies to tell
-    /// the provider what type of object to create.  For instance, in the FileSystem provider the <paramref name="type"/>
+    /// the provider what type of object to create.  For instance, in the FileSystem provider the <c>type</c>
     /// parameter can take a value of "file" or "directory". The comparison of this string should be
     /// case-insensitive and you should also allow for least ambiguous matches. So if the provider allows
     /// for the types "file" and "directory", only the first letter is required to disambiguate.
