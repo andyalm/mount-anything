@@ -19,10 +19,27 @@
     <ItemGroup>
       <HostBin Include="$(StagingDir)\bin\$(Configuration)\net6.0\**\*.*" />
       <ImplBin Include="$(OutputPath)\**\*.*" Exclude="$(HostOutputDir)\**\*.*" />
+      <RootModule Include="$(MSBuildProjectDirectory)\$(HostOutputDir)\$(PowershellProviderName).Host.dll" />
+      <ModuleManifest Include="$(MSBuildProjectDirectory)\$(HostOutputDir)\$(PowershellProviderName).psd1" />
     </ItemGroup>
     <Copy SourceFiles="@(HostBin)" DestinationFiles="$(HostOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
     <Copy SourceFiles="@(ImplBin)" DestinationFiles="$(ImplOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
-    <Exec Command="pwsh -File CreateManifest.ps1 $(PowershellProviderName) &quot;$(MSBuildProjectDirectory)\$(HostOutputDir)&quot; -PackageVersion $(PackageVersion)"
-          WorkingDirectory="$(MSBuildThisFileDirectory)"/>
+    <CreateModuleManifest 
+      Path="@(ModuleManifest)"
+      ModuleVersion="$(PackageVersion)"
+      PowershellVersion="$(MinimumPowershellVersion)"
+      RootModule="@(RootModule)"
+      Author="$(Authors)"
+      Copyright="$(Copyright)"
+      Description="$(Description)"
+      ReleaseNotes="$(PackageReleaseNotes)"
+      FormatsToProcess="@(FormatFile)"
+      NestedModules="@(NestedModule)"
+      RequiredModules="@(RequiredModule)"
+      FunctionsToExport="@(FunctionExport)"
+      VariablesToExport="@(VariableExport)"
+      CmdletsToExport="@(CmdletExport)"
+      AliasesToExport="@(AliasExport)"
+      WorkingDirectory="$(MSBuildProjectDirectory)\$(HostOutputDir)" />
   </Target>
 </Project>

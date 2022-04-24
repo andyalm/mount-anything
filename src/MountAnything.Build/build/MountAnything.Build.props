@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <MinimumPowershellVersion>7.2</MinimumPowershellVersion>
   </PropertyGroup>
   <ItemGroup>
     <CompilerVisibleProperty Include="PowershellProviderName" />
@@ -9,5 +10,7 @@
     <CompilerVisibleProperty Include="ImplAssemblyName" />
   </ItemGroup>
   <UsingTask TaskName="MountAnything.Build.StageMountAnythingHostProject"
+             AssemblyFile="$(MSBuildThisFileDirectory)MountAnything.Build.dll" />
+  <UsingTask TaskName="MountAnything.Build.CreateModuleManifest"
              AssemblyFile="$(MSBuildThisFileDirectory)MountAnything.Build.dll" />
 </Project>

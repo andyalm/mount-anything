@@ -32,6 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.1.0" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.1.0" />
   </ItemGroup>
   
