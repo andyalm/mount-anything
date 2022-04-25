@@ -23,8 +23,7 @@ public abstract class Item<T> : IItem where T : class
 
     public virtual string? ItemType => null;
     protected virtual string TypeName => UnderlyingObject.GetType().FullName!;
-    
-    protected virtual IEnumerable<string> Aliases => Enumerable.Empty<string>();
+    public virtual IEnumerable<string> Aliases => Enumerable.Empty<string>();
 
     public IEnumerable<ItemPath> CacheablePaths
     {
@@ -44,6 +43,7 @@ public abstract class Item<T> : IItem where T : class
     {
         var psObject = UnderlyingObject is PSObject underlyingObject ? underlyingObject : new PSObject(UnderlyingObject);
         psObject.SetTypeName(TypeName);
+        SetPropertiesFromPropertyItemAttributes(psObject);
         psObject.SetPropertyIfMissing(nameof(ItemName), ItemName);
         psObject.SetPropertyIfMissing("Name", ItemName);
         if (ItemType != null)
@@ -51,7 +51,6 @@ public abstract class Item<T> : IItem where T : class
             psObject.SetProperty(nameof(ItemType), ItemType);
         }
         SetLinks(pathResolver, psObject);
-        SetPropertiesFromPropertyItemAttributes(psObject);
         CustomizePSObject(psObject);
 
         return psObject;

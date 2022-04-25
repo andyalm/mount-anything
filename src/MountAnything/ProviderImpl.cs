@@ -419,7 +419,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         var pattern = itemPath.Name;
         var returnValue = WithPathHandler(handlerPath.FullName, handler =>
         {
-            WriteDebug($"{handler.GetType().Name}.ExpandPath({pattern})");
+            WriteDebug($"{handler.GetType().Name}.GetChildItems({pattern})");
             return handler.GetChildItems(pattern)
                 .Select(i => i.MatchingCacheablePath(itemPath))
                 .Select(p => p.Parts.Length == 1 ? ToProviderPath(p).Substring(1) : ToProviderPath(p))

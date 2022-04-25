@@ -126,8 +126,7 @@ public class ItemTests
 
         public override string ItemName => "test";
         public override bool IsContainer => false;
-
-        protected override IEnumerable<string> Aliases { get; } = new List<string>();
+        public override IEnumerable<string> Aliases { get; } = new List<string>();
 
         public void AddAlias(string alias)
         {
