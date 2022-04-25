@@ -4,5 +4,5 @@
 .idea/
 .vs/
 .DS_Store
-src/MountAnything.Build/build/*.dll
-src/MountAnything.Build/build/*.pdb
+src/MountAnything.Hosting.Build/build/*.dll
+src/MountAnything.Hosting.Build/build/*.pdb

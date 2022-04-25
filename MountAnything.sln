@@ -14,15 +14,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFi
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MountAnything.Build", "src\MountAnything.Build\MountAnything.Build.csproj", "{878F15C9-48BB-4598-A56B-FC7B8CA9FAFA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MountAnything.Hosting.Build", "src\MountAnything.Hosting.Build\MountAnything.Hosting.Build.csproj", "{878F15C9-48BB-4598-A56B-FC7B8CA9FAFA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{23882579-D5E5-4934-B3CC-D296D5F59B50}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MountPowershell", "examples\mount-powershell\MountPowershell.csproj", "{1E2B0703-587F-4545-97E2-4BEBCCC010CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MountAnything.Build.Templates", "src\MountAnything.Build.Templates\MountAnything.Build.Templates.csproj", "{C5485624-F130-4945-91C5-504289AC5A74}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MountAnything.Hosting.Templates", "src\MountAnything.Hosting.Templates\MountAnything.Hosting.Templates.csproj", "{C5485624-F130-4945-91C5-504289AC5A74}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MountAnything.Hosting.Abstractions", "src\MountAnything.Hosting.Abstractions\MountAnything.Hosting.Abstractions.csproj", "{251F9227-E6F6-4618-9532-619DAB4BBF36}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hosting", "Hosting", "{F2EC1741-065E-486F-A6DB-06D587B9637B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,5 +63,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{D80D9453-212C-4D8F-8B74-E3B17A81ADEA} = {E8302017-CFB2-454F-B7CB-2BC54537E5F2}
 		{1E2B0703-587F-4545-97E2-4BEBCCC010CF} = {23882579-D5E5-4934-B3CC-D296D5F59B50}
+		{878F15C9-48BB-4598-A56B-FC7B8CA9FAFA} = {F2EC1741-065E-486F-A6DB-06D587B9637B}
+		{251F9227-E6F6-4618-9532-619DAB4BBF36} = {F2EC1741-065E-486F-A6DB-06D587B9637B}
+		{C5485624-F130-4945-91C5-504289AC5A74} = {F2EC1741-065E-486F-A6DB-06D587B9637B}
 	EndGlobalSection
 EndGlobal

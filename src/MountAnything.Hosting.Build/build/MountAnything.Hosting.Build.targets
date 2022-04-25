@@ -24,6 +24,7 @@
     </ItemGroup>
     <Copy SourceFiles="@(HostBin)" DestinationFiles="$(HostOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
     <Copy SourceFiles="@(FormatFile)" DestinationFiles="$(HostOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Copy SourceFiles="@(NestedModule)" DestinationFiles="$(HostOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
     <Copy SourceFiles="@(ImplBin)" DestinationFiles="$(ImplOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
     <CreateModuleManifest 
       Path="@(ModuleManifest)"

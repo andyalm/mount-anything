@@ -3,7 +3,7 @@ using Microsoft.Build.Tasks;
 using System.IO;
 using System.Text;
 
-namespace MountAnything.Build;
+namespace MountAnything.Hosting.Build;
 
 public class CreateModuleManifest : Microsoft.Build.Utilities.Task
 {

@@ -1,7 +1,7 @@
 using System.Text;
 using Microsoft.Build.Framework;
 
-namespace MountAnything.Build;
+namespace MountAnything.Hosting.Build;
 
 internal static class PwshCommandBuilder
 {

@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using MountAnything.Hosting.Abstractions;
 
-namespace MountAnything.Build;
+namespace MountAnything.Hosting.Templates;
 
 [CmdletProvider("MyProviderName", ProviderCapabilities.Filter | ProviderCapabilities.ExpandWildcards)]
 public class Provider : NavigationCmdletProvider,

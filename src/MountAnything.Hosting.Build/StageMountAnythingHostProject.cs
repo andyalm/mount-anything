@@ -1,6 +1,6 @@
 using Microsoft.Build.Framework;
 
-namespace MountAnything.Build;
+namespace MountAnything.Hosting.Build;
 
 public class StageMountAnythingHostProject : Microsoft.Build.Utilities.Task
 {
@@ -21,14 +21,14 @@ public class StageMountAnythingHostProject : Microsoft.Build.Utilities.Task
         try
         {
             var providerSource = GetSource("Provider.cs")
-                .Replace("namespace MountAnything.Build;", $"namespace {RootNamespace};")
+                .Replace("namespace MountAnything.Hosting.Templates;", $"namespace {RootNamespace};")
                 .Replace("MyProviderName", PowershellProviderName)
                 .Replace("MyImplAssemblyName", ImplAssemblyName);
             Directory.CreateDirectory(StagingDir!);
             File.WriteAllText(Path.Combine(StagingDir!, "Provider.cs"), providerSource);
 
             var assemblyContextSource = GetSource("ProviderAssemblyContext.cs")
-                .Replace("namespace MountAnything.Build;", $"namespace {RootNamespace};");
+                .Replace("namespace MountAnything.Hosting.Templates;", $"namespace {RootNamespace};");
             File.WriteAllText(Path.Combine(StagingDir!, "ProviderAssemblyContext.cs"), assemblyContextSource);
 
             var projectSource = GetSource("Host.csproj");
@@ -45,7 +45,7 @@ public class StageMountAnythingHostProject : Microsoft.Build.Utilities.Task
     
     private string GetSource(string filename)
     {
-        var fullyQualifiedResourceName = $"MountAnything.Build.templates.{filename}";
+        var fullyQualifiedResourceName = $"MountAnything.Hosting.Build.templates.{filename}";
         using var stream =
             typeof(StageMountAnythingHostProject).Assembly.GetManifestResourceStream(fullyQualifiedResourceName);
         if (stream == null)

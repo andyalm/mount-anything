@@ -37,8 +37,8 @@
   </ItemGroup>
   
   <ItemGroup>
-    <EmbeddedResource Include="..\MountAnything.Build.Templates\Provider.cs" Link="templates\Provider.cs" />
-    <EmbeddedResource Include="..\MountAnything.Build.Templates\ProviderAssemblyContext.cs" Link="templates\ProviderAssemblyContext.cs" />
+    <EmbeddedResource Include="..\MountAnything.Hosting.Templates\Provider.cs" Link="templates\Provider.cs" />
+    <EmbeddedResource Include="..\MountAnything.Hosting.Templates\ProviderAssemblyContext.cs" Link="templates\ProviderAssemblyContext.cs" />
     <Compile Remove="templates\*.cs" />
     <EmbeddedResource Include="templates\Host.csproj" />
   </ItemGroup>

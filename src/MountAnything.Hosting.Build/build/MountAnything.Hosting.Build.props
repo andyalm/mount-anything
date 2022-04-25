@@ -9,8 +9,8 @@
     <CompilerVisibleProperty Include="ProjectName" />
     <CompilerVisibleProperty Include="ImplAssemblyName" />
   </ItemGroup>
-  <UsingTask TaskName="MountAnything.Build.StageMountAnythingHostProject"
-             AssemblyFile="$(MSBuildThisFileDirectory)MountAnything.Build.dll" />
-  <UsingTask TaskName="MountAnything.Build.CreateModuleManifest"
-             AssemblyFile="$(MSBuildThisFileDirectory)MountAnything.Build.dll" />
+  <UsingTask TaskName="MountAnything.Hosting.Build.StageMountAnythingHostProject"
+             AssemblyFile="$(MSBuildThisFileDirectory)MountAnything.Hosting.Build.dll" />
+  <UsingTask TaskName="MountAnything.Hosting.Build.CreateModuleManifest"
+             AssemblyFile="$(MSBuildThisFileDirectory)MountAnything.Hosting.Build.dll" />
 </Project>

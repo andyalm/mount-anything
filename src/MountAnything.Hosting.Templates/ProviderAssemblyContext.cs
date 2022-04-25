@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Runtime.Loader;
 
-namespace MountAnything.Build;
+namespace MountAnything.Hosting.Templates;
 
 internal class ProviderAssemblyContext : AssemblyLoadContext
 {
