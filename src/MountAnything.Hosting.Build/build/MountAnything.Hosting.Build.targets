@@ -1,30 +1,36 @@
 <Project>
-  <Target Name="BuildHost" AfterTargets="Build">
-    <Error Condition="$(PowershellProviderName)==''" Text="Please set the property 'PowershellProviderName' in the $(ProjectName).csproj project" />
+  <Target Name="_ComputeMountAnythingProperties">
     <PropertyGroup>
+      <PowershellProviderName Condition="$(PowershellProviderName)==''">$(ProjectName)</PowershellProviderName>
       <StagingDir>$(IntermediateOutputPath)\Host</StagingDir>
-      <HostOutputDir>$(OutputPath)\Host</HostOutputDir>
-      <ImplOutputDir>$(OutputPath)\Host\Impl</ImplOutputDir>
+      <ModuleOutputDir>$([System.IO.Path]::GetFullPath('$(OutputPath)\Module'))</ModuleOutputDir>
+      <ImplOutputDir>$(ModuleOutputDir)\Impl</ImplOutputDir>
     </PropertyGroup>
+  </Target>
+  
+  <Target Name="BuildHost" AfterTargets="Build" DependsOnTargets="_ComputeMountAnythingProperties">
     <StageMountAnythingHostProject
       PowershellProviderName="$(PowershellProviderName)"
       ImplAssemblyName="$(AssemblyName)"
       RootNamespace="$(RootNamespace)"
       StagingDir="$(StagingDir)" />
-    <MakeDir Directories="$(HostOutputDir)" />
+    <MakeDir Directories="$(ModuleOutputDir)" />
     <ItemGroup>
       <HostProject Include="$(StagingDir)\$(PowershellProviderName).Host.csproj" />
     </ItemGroup>
     <MSBuild Projects="@(HostProject)" Targets="Restore;Build" Properties="HostingAbstractionsProjectLocation=$(HostingAbstractionsProjectLocation)" />
     <ItemGroup>
       <HostBin Include="$(StagingDir)\bin\$(Configuration)\net6.0\**\*.*" />
-      <ImplBin Include="$(OutputPath)\**\*.*" Exclude="$(HostOutputDir)\**\*.*" />
+      <ImplBin Include="$(OutputPath)\**\*.*" Exclude="$(ModuleOutputDir)\**\*.*" />
       <ModuleManifest Include="$(PowershellProviderName).psd1" />
       <RootModule Include="$(PowershellProviderName).Host.dll" />
+      <PSFormat Update="@(PSFormat)" Condition="%(PSFormat.ModulePath)==''">
+        <ModulePath>%(Identity)</ModulePath>
+      </PSFormat>
     </ItemGroup>
-    <Copy SourceFiles="@(HostBin)" DestinationFiles="$(HostOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
-    <Copy SourceFiles="@(FormatFile)" DestinationFiles="$(HostOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
-    <Copy SourceFiles="@(NestedModule)" DestinationFiles="$(HostOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Copy SourceFiles="@(HostBin)" DestinationFiles="$(ModuleOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Copy SourceFiles="@(NestedModule)" DestinationFiles="$(ModuleOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Copy SourceFiles="@(PSFormat)" DestinationFiles="$(ModuleOutputDir)\%(PSFormat.ModulePath)" />
     <Copy SourceFiles="@(ImplBin)" DestinationFiles="$(ImplOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
     <CreateModuleManifest 
       Path="@(ModuleManifest)"
@@ -35,13 +41,23 @@
       Copyright="$(Copyright)"
       Description="$(Description)"
       ReleaseNotes="$(PackageReleaseNotes)"
-      FormatsToProcess="@(FormatFile)"
+      FormatsToProcess="@(PSFormat)"
       NestedModules="@(NestedModule)"
       RequiredModules="@(RequiredModule)"
-      FunctionsToExport="@(FunctionExport)"
+      FunctionsToExport="$(FunctionsToExport)"
       VariablesToExport="@(VariableExport)"
       CmdletsToExport="@(CmdletExport)"
-      AliasesToExport="@(AliasExport)"
-      WorkingDirectory="$(MSBuildProjectDirectory)\$(HostOutputDir)" />
+      AliasesToExport="$(AliasesToExport)"
+      WorkingDirectory="$(ModuleOutputDir)" />
+  </Target>
+  
+  <Target Name="PublishModule" DependsOnTargets="_ComputeMountAnythingProperties;BuildHost" AfterTargets="Publish">
+    <!-- Clean out existing publish directory because we are going to re-populate it with the PS module files only -->
+    <RemoveDir Directories="$(PublishDir)" />
+    
+    <ItemGroup>
+      <ModuleFile Include="$(ModuleOutputDir)\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ModuleFile)" DestinationFiles="$(PublishDir)\%(RecursiveDir)%(Filename)%(Extension)" />
   </Target>
 </Project>

@@ -3,7 +3,6 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <OutputPath Condition="$(HostOutputDir)!=''">$(HostOutputDir)</OutputPath>
   </PropertyGroup>
   
   <ItemGroup Condition="$(HostingAbstractionsProjectLocation)==''">
