@@ -3,10 +3,11 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <HostingAbstractionsPackageVersion Condition="$(HostingAbstractionsPackageVersion)==''">0.9.0</HostingAbstractionsPackageVersion>
   </PropertyGroup>
   
   <ItemGroup Condition="$(HostingAbstractionsProjectLocation)==''">
-    <PackageReference Include="MountAnything.Hosting.Abstractions" Version="1.0.0" />
+    <PackageReference Include="MountAnything.Hosting.Abstractions" Version="$(HostingAbstractionsPackageVersion)" />
   </ItemGroup>
   <ItemGroup Condition="$(HostingAbstractionsProjectLocation)!=''">
     <ProjectReference Include="$(HostingAbstractionsProjectLocation)" />
