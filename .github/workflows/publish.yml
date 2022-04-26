@@ -34,8 +34,11 @@ jobs:
       - name: Build
         run: dotnet build
         
-      - name: Publish to nuget.org
+      - name: Publish MountAnything to nuget.org
         run: dotnet nuget push $(ls src/MountAnything/bin/${{ env.Configuration }}/*.nupkg) -k ${{ secrets.NUGET_FEED_KEY }} -s https://api.nuget.org/v3/index.json
+
+      - name: Publish MountAnything.Hosting.Build to nuget.org
+        run: dotnet nuget push $(ls src/MountAnything.Hosting.Build/bin/${{ env.Configuration }}/*.nupkg) -k ${{ secrets.NUGET_FEED_KEY }} -s https://api.nuget.org/v3/index.json
         
     environment:
       name: nuget.org

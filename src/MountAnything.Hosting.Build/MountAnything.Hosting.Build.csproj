@@ -16,7 +16,8 @@
     <PackageTags>powershell;mount;drive;psdrive;</PackageTags>
     <Copyright>2022 Andy Alm</Copyright>
     <Title>Mount Anything Build</Title>
-    <Description>A framework for building powershell providers to make it easy to navigate arbitrary API's as a hierarchical virtual filesystem of objects. The MountAnything.Build package should be installed in the package that will contain the generated powershell provider.</Description>
+    <Description>This package should be installed in the project that will build the powershell module to host your powershell provider built with MountAnything. MountAnything is a framework for building powershell providers to make it easy to navigate arbitrary API's as a hierarchical virtual filesystem of objects.</Description>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   
   <ItemGroup Label="dotnet pack instructions">
@@ -32,8 +33,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.1.0" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.1.0" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.1.0">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.1.0">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
   
   <ItemGroup>
@@ -41,6 +46,7 @@
     <EmbeddedResource Include="..\MountAnything.Hosting.Templates\ProviderAssemblyContext.cs" Link="templates\ProviderAssemblyContext.cs" />
     <Compile Remove="templates\*.cs" />
     <EmbeddedResource Include="templates\Host.csproj" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
   
   <!-- This is here to facilitate running from a ProjectReference. Is not necessary for generating the package -->
