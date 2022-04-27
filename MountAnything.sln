@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFiles", "{6405AFCD-C397-471E-9425-3E9BCADB97A9}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
+		publish-local.ps1 = publish-local.ps1
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MountAnything.Hosting.Build", "src\MountAnything.Hosting.Build\MountAnything.Hosting.Build.csproj", "{878F15C9-48BB-4598-A56B-FC7B8CA9FAFA}"

@@ -3,6 +3,8 @@
     <PropertyGroup>
       <PowershellProviderName Condition="$(PowershellProviderName)==''">$(ProjectName)</PowershellProviderName>
       <StagingDir>$(IntermediateOutputPath)\Host</StagingDir>
+      <HostAssemblyName>$(PowershellProviderName).Host</HostAssemblyName>
+      <AbstractionsAssemblyName>MountAnything.Hosting.Abstractions</AbstractionsAssemblyName>
       <ModuleOutputDir>$([System.IO.Path]::GetFullPath('$(OutputPath)\Module'))</ModuleOutputDir>
       <ImplOutputDir>$(ModuleOutputDir)\Impl</ImplOutputDir>
     </PropertyGroup>
@@ -16,22 +18,32 @@
       StagingDir="$(StagingDir)" />
     <MakeDir Directories="$(ModuleOutputDir)" />
     <ItemGroup>
-      <HostProject Include="$(StagingDir)\$(PowershellProviderName).Host.csproj" />
+      <HostProject Include="$(StagingDir)\$(HostAssemblyName).csproj" />
     </ItemGroup>
     <MSBuild Projects="@(HostProject)" Targets="Restore;Build" Properties="HostingAbstractionsProjectLocation=$(HostingAbstractionsProjectLocation)" />
+    
     <ItemGroup>
-      <HostBin Include="$(StagingDir)\bin\$(Configuration)\net6.0\**\*.*" />
-      <ImplBin Include="$(OutputPath)\**\*.*" Exclude="$(ModuleOutputDir)\**\*.*" />
-      <ModuleManifest Include="$(PowershellProviderName).psd1" />
-      <RootModule Include="$(PowershellProviderName).Host.dll" />
+      <HostBin Include="$(StagingDir)\bin\$(Configuration)\net6.0\$(HostAssemblyName).dll;$(StagingDir)\bin\$(Configuration)\net6.0\$(HostAssemblyName).pdb;$(StagingDir)\bin\$(Configuration)\net6.0\$(AbstractionsAssemblyName).dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(HostBin)" DestinationFiles="$(ModuleOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+    
+    <ItemGroup>
       <PSFormat Update="@(PSFormat)" Condition="%(PSFormat.ModulePath)==''">
         <ModulePath>%(Identity)</ModulePath>
       </PSFormat>
     </ItemGroup>
-    <Copy SourceFiles="@(HostBin)" DestinationFiles="$(ModuleOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
-    <Copy SourceFiles="@(NestedModule)" DestinationFiles="$(ModuleOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
     <Copy SourceFiles="@(PSFormat)" DestinationFiles="$(ModuleOutputDir)\%(PSFormat.ModulePath)" />
+    <Copy SourceFiles="@(NestedModule)" DestinationFiles="$(ModuleOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+
+    <ItemGroup>
+      <ImplBin Include="$(OutputPath)\**\*.*" Exclude="$(ModuleOutputDir)\**\*.*" />
+    </ItemGroup>
     <Copy SourceFiles="@(ImplBin)" DestinationFiles="$(ImplOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+    
+    <ItemGroup>
+      <ModuleManifest Include="$(PowershellProviderName).psd1" />
+      <RootModule Include="$(HostAssemblyName).dll" />
+    </ItemGroup>
     <CreateModuleManifest 
       Path="@(ModuleManifest)"
       ModuleVersion="$(PackageVersion)"
