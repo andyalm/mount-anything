@@ -11,5 +11,5 @@ if($Debug)
 {
     $DebugPreference='Continue'
 }
-Import-Module ./bin/Debug/net6.0/Module/MountPowershell.psd1
+Import-Module $(Join-Path $PSScriptRoot bin/Debug/net6.0/Module/MountPowershell.psd1)
 cd pwsh:

@@ -287,7 +287,14 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     {
         foreach (var item in items)
         {
-            WriteItem(item);
+            try
+            {
+                WriteItem(item);
+            }
+            catch (PipelineStoppedException)
+            {
+                break;
+            }
         }
     }
     
