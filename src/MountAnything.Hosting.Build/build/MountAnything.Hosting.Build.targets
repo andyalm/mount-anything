@@ -39,6 +39,11 @@
       <ImplBin Include="$(OutputPath)\**\*.*" Exclude="$(ModuleOutputDir)\**\*.*" />
     </ItemGroup>
     <Copy SourceFiles="@(ImplBin)" DestinationFiles="$(ImplOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+    <ItemGroup>
+      <ImplRemove Include="$(ImplOutputDir)\$(AbstractionsAssemblyName).dll" Condition="Exists('$(ImplOutputDir)\$(AbstractionsAssemblyName).dll')" />
+      <ImplRemove Include="$(ImplOutputDir)\$(AbstractionsAssemblyName).pdb" Condition="Exists('$(ImplOutputDir)\$(AbstractionsAssemblyName).pdb')" />
+    </ItemGroup>
+    <Delete Files="@(ImplRemove)" Condition="@(ImplRemove)!=''" />
     
     <ItemGroup>
       <ModuleManifest Include="$(PowershellProviderName).psd1" />
@@ -55,10 +60,10 @@
       ReleaseNotes="$(PackageReleaseNotes)"
       FormatsToProcess="@(PSFormat)"
       NestedModules="@(NestedModule)"
-      RequiredModules="@(RequiredModule)"
+      RequiredModules="$(RequiredModules)"
       FunctionsToExport="$(FunctionsToExport)"
-      VariablesToExport="@(VariableExport)"
-      CmdletsToExport="@(CmdletExport)"
+      VariablesToExport="@(VariablesToExport)"
+      CmdletsToExport="@(CmdletsToExport)"
       AliasesToExport="$(AliasesToExport)"
       WorkingDirectory="$(ModuleOutputDir)" />
   </Target>
