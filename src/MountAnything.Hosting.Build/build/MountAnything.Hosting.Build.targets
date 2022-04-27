@@ -58,6 +58,7 @@
       Copyright="$(Copyright)"
       Description="$(Description)"
       ReleaseNotes="$(PackageReleaseNotes)"
+      LicenseUri="$(PackageLicenseUrl)"
       FormatsToProcess="@(PSFormat)"
       NestedModules="@(NestedModule)"
       RequiredModules="$(RequiredModules)"

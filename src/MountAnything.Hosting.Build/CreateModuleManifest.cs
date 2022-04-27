@@ -1,6 +1,5 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Tasks;
-using System.IO;
 using System.Text;
 
 namespace MountAnything.Hosting.Build;
@@ -22,6 +21,8 @@ public class CreateModuleManifest : Microsoft.Build.Utilities.Task
     public string? Description { get; set; }
 
     public string? ReleaseNotes { get; set; }
+    
+    public string? LicenseUri { get; set; }
     
     public string? PowershellVersion { get; set; }
 
@@ -50,6 +51,7 @@ public class CreateModuleManifest : Microsoft.Build.Utilities.Task
             command.AddParameter(nameof(Copyright), Copyright);
             command.AddParameter(nameof(Description), Description);
             command.AddParameter(nameof(ReleaseNotes), ReleaseNotes);
+            command.AddParameter(nameof(LicenseUri), LicenseUri);
             command.AddParameter(nameof(FormatsToProcess), FormatsToProcess);
             command.AddParameter(nameof(NestedModules), NestedModules);
             command.AddParameter(nameof(RequiredModules), RequiredModules);
