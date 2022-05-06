@@ -1,0 +1,81 @@
+<Project>
+  <Target Name="_ComputeMountAnythingProperties">
+    <PropertyGroup>
+      <PowershellProviderName Condition="$(PowershellProviderName)==''">$(ProjectName)</PowershellProviderName>
+      <StagingDir>$(IntermediateOutputPath)\Host</StagingDir>
+      <HostAssemblyName>$(PowershellProviderName).Host</HostAssemblyName>
+      <AbstractionsAssemblyName>MountAnything.Hosting.Abstractions</AbstractionsAssemblyName>
+      <ModuleOutputDir>$([System.IO.Path]::GetFullPath('$(OutputPath)\Module'))</ModuleOutputDir>
+      <ImplOutputDir>$(ModuleOutputDir)\Impl</ImplOutputDir>
+    </PropertyGroup>
+  </Target>
+  
+  <Target Name="BuildHost" AfterTargets="Build" DependsOnTargets="_ComputeMountAnythingProperties">
+    <StageMountAnythingHostProject
+      PowershellProviderName="$(PowershellProviderName)"
+      ImplAssemblyName="$(AssemblyName)"
+      RootNamespace="$(RootNamespace)"
+      StagingDir="$(StagingDir)" />
+    <MakeDir Directories="$(ModuleOutputDir)" />
+    <ItemGroup>
+      <HostProject Include="$(StagingDir)\$(HostAssemblyName).csproj" />
+    </ItemGroup>
+    <MSBuild Projects="@(HostProject)" Targets="Restore;Build" Properties="HostingAbstractionsProjectLocation=$(HostingAbstractionsProjectLocation)" />
+    
+    <ItemGroup>
+      <HostBin Include="$(StagingDir)\bin\$(Configuration)\net6.0\$(HostAssemblyName).dll;$(StagingDir)\bin\$(Configuration)\net6.0\$(HostAssemblyName).pdb;$(StagingDir)\bin\$(Configuration)\net6.0\$(AbstractionsAssemblyName).dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(HostBin)" DestinationFiles="$(ModuleOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+    
+    <ItemGroup>
+      <PSFormat Update="@(PSFormat)" Condition="%(PSFormat.ModulePath)==''">
+        <ModulePath>%(Identity)</ModulePath>
+      </PSFormat>
+    </ItemGroup>
+    <Copy SourceFiles="@(PSFormat)" DestinationFiles="$(ModuleOutputDir)\%(PSFormat.ModulePath)" />
+    <Copy SourceFiles="@(NestedModule)" DestinationFiles="$(ModuleOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+
+    <ItemGroup>
+      <ImplBin Include="$(OutputPath)\**\*.*" Exclude="$(ModuleOutputDir)\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ImplBin)" DestinationFiles="$(ImplOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+    <ItemGroup>
+      <ImplRemove Include="$(ImplOutputDir)\$(AbstractionsAssemblyName).dll" Condition="Exists('$(ImplOutputDir)\$(AbstractionsAssemblyName).dll')" />
+      <ImplRemove Include="$(ImplOutputDir)\$(AbstractionsAssemblyName).pdb" Condition="Exists('$(ImplOutputDir)\$(AbstractionsAssemblyName).pdb')" />
+    </ItemGroup>
+    <Delete Files="@(ImplRemove)" Condition="@(ImplRemove)!=''" />
+    
+    <ItemGroup>
+      <ModuleManifest Include="$(PowershellProviderName).psd1" />
+      <RootModule Include="$(HostAssemblyName).dll" />
+    </ItemGroup>
+    <CreateModuleManifest 
+      Path="@(ModuleManifest)"
+      ModuleVersion="$(PackageVersion)"
+      PowershellVersion="$(MinimumPowershellVersion)"
+      RootModule="@(RootModule)"
+      Author="$(Authors)"
+      Copyright="$(Copyright)"
+      Description="$(Description)"
+      ReleaseNotes="$(PackageReleaseNotes)"
+      LicenseUri="$(PackageLicenseUrl)"
+      FormatsToProcess="@(PSFormat)"
+      NestedModules="@(NestedModule)"
+      RequiredModules="$(RequiredModules)"
+      FunctionsToExport="$(FunctionsToExport)"
+      VariablesToExport="@(VariablesToExport)"
+      CmdletsToExport="@(CmdletsToExport)"
+      AliasesToExport="$(AliasesToExport)"
+      WorkingDirectory="$(ModuleOutputDir)" />
+  </Target>
+  
+  <Target Name="PublishModule" DependsOnTargets="_ComputeMountAnythingProperties;BuildHost" AfterTargets="Publish">
+    <!-- Clean out existing publish directory because we are going to re-populate it with the PS module files only -->
+    <RemoveDir Directories="$(PublishDir)" />
+    
+    <ItemGroup>
+      <ModuleFile Include="$(ModuleOutputDir)\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ModuleFile)" DestinationFiles="$(PublishDir)\%(RecursiveDir)%(Filename)%(Extension)" />
+  </Target>
+</Project>

@@ -1,0 +1,3 @@
+# MountAnything.Hosting.Abstractions
+
+This package is intended to be the only assembly loaded into the global `AssemblyLoadContext` of the powershell process. It contains two interfaces, both of which are intended to be very stable as they are based on the public interface of the `NavigationCmdletProvider` base class. The intention is that any powershell provider written using the `MountAnything` framework will be loaded into its own isolated `AssemblyLoadContext`, including the `MountAnything` libraries it uses (except for this Abstractions package, which will facilitate the communication between the global context and the isolated one). This will allow providers using different versions of `MountAnything` to co-exist within the same `pwsh` instance.

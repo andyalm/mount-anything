@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageVersion>0.9.0</PackageVersion>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/andyalm/mount-anything</RepositoryUrl>
+        <Authors>Andy Alm</Authors>
+        <PackageTags>powershell;mount;drive;psdrive;</PackageTags>
+        <Copyright>2022 Andy Alm</Copyright>
+        <Title>Mount Anything Hosting Abstractions</Title>
+        <Description>This package is intended to be the only assembly loaded into the global AssemblyLoadContext of the powershell process when using the MountAnything framework. It contains two interfaces, both of which are intended to be very stable as they are based on the public interface of the NavigationCmdletProvider base class.</Description>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.Management.Automation" Version="7.2.0" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+        <None Include="README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+</Project>

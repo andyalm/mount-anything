@@ -3,3 +3,6 @@
 *.user
 .idea/
 .vs/
+.DS_Store
+src/MountAnything.Hosting.Build/build/*.dll
+src/MountAnything.Hosting.Build/build/*.pdb

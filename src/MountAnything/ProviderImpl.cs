@@ -1,46 +1,65 @@
-﻿using System.Collections;
-using System.Collections.Concurrent;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Management.Automation.Provider;
+using System.Reflection;
 using Autofac;
 using MountAnything.Content;
+using MountAnything.Hosting.Abstractions;
 using MountAnything.Routing;
 
 namespace MountAnything;
-public abstract class MountAnythingProvider : NavigationCmdletProvider,
-    IPathHandlerContext,
-    IContentCmdletProvider,
-    IPropertyCmdletProvider
-{
-    // We need cache and router to be long-lived instances. Since powershell creates instances
-    // of a provider for what appears to be every command, these must be stored as statics so that
-    // we can re-use instances across command invocations. Since this is a base class, all inheriting providers
-    // will be sharing the static instances, so we need to store an instance of each per provider module to ensure
-    // state does not leak between providers.
-    private static readonly ConcurrentDictionary<string,Cache> _caches = new();
-    private static readonly ConcurrentDictionary<string,Router> _routers = new();
-    
-    private readonly Lazy<Cache> _cache;
-    private readonly Lazy<Router> _router;
 
-    protected abstract Router CreateRouter();
-    
-    protected MountAnythingProvider()
+public class ProviderImpl : IProviderImpl, IPathHandlerContext
+{
+    private readonly Assembly _entrypointAssembly;
+    private readonly Cache _cache;
+    private readonly IMountAnythingProvider _mountAnythingProvider;
+    private readonly Router _router;
+
+    private IProviderHost Host => ProviderHostAccessor.Current;
+
+    public ProviderImpl(Assembly entrypointAssembly)
     {
-        _cache = new Lazy<Cache>(() => _caches.GetOrAdd(StaticCacheKey, _ => new Cache()));
-        _router = new Lazy<Router>(() => _routers.GetOrAdd(StaticCacheKey, _ => CreateRouter()));
+        _entrypointAssembly = entrypointAssembly;
+        _cache = new Cache();
+        (_mountAnythingProvider, _router) = LoadRouter();
     }
 
-    private string StaticCacheKey => $"{GetType().FullName}";
+    private (IMountAnythingProvider, Router) LoadRouter()
+    {
+        var routerFactoryType = _entrypointAssembly.GetExportedTypes()
+            .SingleOrDefault(t => typeof(IMountAnythingProvider).IsAssignableFrom(t));
+        if (routerFactoryType == null)
+        {
+            throw new InvalidOperationException(
+                $"Could not find a public type that implements IMountAnythingProvider in assembly {_entrypointAssembly.FullName}");
+        }
 
-    private Router Router => _router.Value;
-    public Cache Cache => _cache.Value;
+        var routerFactory = (IMountAnythingProvider)Activator.CreateInstance(routerFactoryType)!;
+        return (routerFactory, routerFactory.CreateRouter());
+    }
+
+    private Router Router => _router;
+    public Cache Cache => _cache;
     
-    bool IPathHandlerContext.Force => base.Force.IsPresent;
+    bool IPathHandlerContext.Force => Host.Force;
+    CommandInvocationIntrinsics IPathHandlerContext.InvokeCommand => Host.InvokeCommand;
+
+    public ProviderInfo Start(ProviderInfo providerInfo)
+    {
+        return providerInfo;
+    }
+
+    public object? StartDynamicParameters()
+    {
+        return null;
+    }
+
+    public void Stop() { }
     
-    protected override bool IsValidPath(string path) => true;
-    protected override bool ItemExists(string path)
+    public bool IsValidPath(string path) => true;
+    public bool ItemExists(string path)
     {
         //WriteDebug($"ItemExists({path})");
         if (path.Contains("*"))
@@ -59,7 +78,12 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
         }
     }
 
-    protected override void GetItem(string path)
+    public object? ItemExistsDynamicParameters(string path)
+    {
+        return null;
+    }
+
+    public void GetItem(string path)
     {
         WriteDebug($"GetItem({path})");
         try
@@ -87,7 +111,7 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
         }
     }
 
-    protected override object? GetItemDynamicParameters(string path)
+    public object? GetItemDynamicParameters(string path)
     {
         try
         {
@@ -100,7 +124,7 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
         }
     }
 
-    protected override void GetChildItems(string path, bool recurse)
+    public void GetChildItems(string path, bool recurse)
     {
         WriteDebug($"GetChildItems({path}, {recurse})");
         WithPathHandler(path, handler =>
@@ -113,7 +137,7 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
         });
     }
 
-    protected override object? GetChildItemsDynamicParameters(string path, bool recurse)
+    public object? GetChildItemsDynamicParameters(string path, bool recurse)
     {
         try
         {
@@ -126,24 +150,24 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
         }
     }
 
-    protected override void GetChildItems(string path, bool recurse, uint depth)
+    public void GetChildItems(string path, bool recurse, uint depth)
     {
         GetChildItems(path, recurse);
     }
-    
-    protected override bool HasChildItems(string path)
+
+    public bool HasChildItems(string path)
     {
         WriteDebug($"HasChildItems({path})");
         return WithPathHandler<bool?>(path, handler => handler.GetChildItems(Freshness.Fastest).Any()) ?? false;
     }
 
-    protected override bool IsItemContainer(string path)
+    public bool IsItemContainer(string path)
     {
         WriteDebug($"IsItemContainer({path})");
         return WithPathHandler(path, handler => handler.GetItem(Freshness.Fastest)?.IsContainer) ?? false;
     }
 
-    protected override void NewItem(string path, string itemTypeName, object? newItemValue)
+    public void NewItem(string path, string itemTypeName, object? newItemValue)
     {
         WithPathHandler(path, handler =>
         {
@@ -159,7 +183,7 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
         });
     }
 
-    protected override object? NewItemDynamicParameters(string path, string itemTypeName, object newItemValue)
+    public object? NewItemDynamicParameters(string path, string itemTypeName, object newItemValue)
     {
         try
         {
@@ -172,7 +196,7 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
         }
     }
 
-    protected override void RemoveItem(string path, bool recurse)
+    public void RemoveItem(string path, bool recurse)
     {
         WithPathHandler(path, handler =>
         {
@@ -188,7 +212,7 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
         });
     }
 
-    protected override object? RemoveItemDynamicParameters(string path, bool recurse)
+    public object? RemoveItemDynamicParameters(string path, bool recurse)
     {
         try
         {
@@ -201,11 +225,76 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
         }
     }
 
+    public PSDriveInfo NewDrive(PSDriveInfo drive)
+    {
+        return drive;
+    }
+
+    public object? NewDriveDynamicParameters()
+    {
+        return null;
+    }
+
+    public PSDriveInfo RemoveDrive(PSDriveInfo drive)
+    {
+        return drive;
+    }
+
+    public Collection<PSDriveInfo> InitializeDefaultDrives()
+    {
+        var defaultDrives = _mountAnythingProvider
+            .GetDefaultDrives()
+            .Select(defaultDrive => new PSDriveInfo(defaultDrive.Name, Host.ProviderInfo, ItemSeparator.ToString(),
+                defaultDrive.Description, null))
+            .ToList();
+
+        return new Collection<PSDriveInfo>(defaultDrives);
+    }
+
+    public void RenameItem(string path, string newName)
+    {
+        throw NotImplemented();
+    }
+
+    public object? RenameItemDynamicParameters(string path, string newName)
+    {
+        return null;
+    }
+
+    public void CopyItem(string path, string copyPath, bool recurse)
+    {
+        throw NotImplemented();
+    }
+
+    public object? CopyItemDynamicParameters(string path, string destination, bool recurse)
+    {
+        return null;
+    }
+
+    public void MoveItem(string path, string destination)
+    {
+        throw NotImplemented();
+    }
+
+    public object? MoveItemDynamicParameters(string path, string destination)
+    {
+        return null;
+    }
+    
+    
+
     private void WriteItems<T>(IEnumerable<T> items) where T : IItem
     {
         foreach (var item in items)
         {
-            WriteItem(item);
+            try
+            {
+                WriteItem(item);
+            }
+            catch (PipelineStoppedException)
+            {
+                break;
+            }
         }
     }
     
@@ -271,16 +360,65 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
 
     public string ToFullyQualifiedProviderPath(ItemPath path)
     {
-        return $"{PSDriveInfo.Name}:{ToProviderPath(path)}";
+        return $"{Host.PSDriveInfo.Name}:{ToProviderPath(path)}";
+    }
+    
+    public string NormalizeRelativePath(string path, string basePath)
+    {
+        var returnValue = Host.NormalizeRelativePathDefaultImpl(path, basePath);
+        //HACK to make tab completion on top level directories work (I'm calling it a hack because I don't understand why its necessary)
+        if (returnValue.StartsWith(ItemSeparator) && basePath == ItemSeparator.ToString())
+        {
+            returnValue = returnValue.Substring(1);
+        }
+
+        WriteDebug($"{returnValue} NormalizeRelativePath({path}, {basePath})");
+
+        return returnValue;
     }
 
-    protected override void GetChildNames(string path, ReturnContainers returnContainers)
+    public void GetChildNames(string path, ReturnContainers returnContainers)
     {
         WriteDebug($"GetChildNames({path}, {returnContainers})");
-        base.GetChildNames(path, returnContainers);
+        Host.GetChildNamesDefaultImpl(path, returnContainers);
     }
 
-    protected override string[] ExpandPath(string path)
+    public object? GetChildNamesDynamicParameters(string path)
+    {
+        return null;
+    }
+
+    public void SetItem(string path, object value)
+    {
+        throw NotImplemented();
+    }
+
+    public object? SetItemDynamicParameters(string path, object value)
+    {
+        return null;
+    }
+
+    public void ClearItem(string path)
+    {
+        throw NotImplemented();
+    }
+
+    public object? ClearItemDynamicParameters(string path)
+    {
+        return null;
+    }
+
+    public void InvokeDefaultAction(string path)
+    {
+        throw NotImplemented();
+    }
+
+    public object? InvokeDefaultActionDynamicParameters(string path)
+    {
+        return null;
+    }
+
+    public string[] ExpandPath(string path)
     {
         WriteDebug($"ExpandPath({path})");
         var itemPath = new ItemPath(path);
@@ -302,30 +440,10 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
         return returnValue;
     }
 
-    protected override bool ConvertPath(string path, string filter, ref string updatedPath, ref string updatedFilter)
+    public bool ConvertPath(string path, string filter, ref string updatedPath, ref string updatedFilter)
     {
         WriteDebug($"ConvertPath({path}, {filter})");
-        return base.ConvertPath(path, filter, ref updatedPath, ref updatedFilter);
-    }
-
-    public override string GetResourceString(string baseName, string resourceId)
-    {
-        WriteDebug($"GetResourceString({baseName}, {resourceId})");
-        return base.GetResourceString(baseName, resourceId);
-    }
-
-    protected override string NormalizeRelativePath(string path, string basePath)
-    {
-        var returnValue = base.NormalizeRelativePath(path, basePath);
-        //HACK to make tab completion on top level directories work (I'm calling it a hack because I don't understand why its necessary)
-        if (returnValue.StartsWith(ItemSeparator) && basePath == ItemSeparator.ToString())
-        {
-            returnValue = returnValue.Substring(1);
-        }
-
-        WriteDebug($"{returnValue} NormalizeRelativePath({path}, {basePath})");
-
-        return returnValue;
+        return Host.ConvertPathDefaultImpl(path, filter, ref updatedPath, ref updatedFilter);
     }
 
     #region Content
@@ -423,4 +541,29 @@ public abstract class MountAnythingProvider : NavigationCmdletProvider,
     }
 
     #endregion
+
+
+    private void WriteError(ErrorRecord error) => Host.WriteError(error);
+    void IPathHandlerContext.WriteWarning(string message) => WriteWarning(message);
+    private void WriteWarning(string message) => Host.WriteWarning(message);
+
+    void IPathHandlerContext.WriteDebug(string message) => WriteDebug(message);
+    private void WriteDebug(string text) => Host.WriteDebug(text);
+
+    private void WritePropertyObject(object propertyValue, string path) =>
+        Host.WritePropertyObject(propertyValue, path);
+
+    private void WriteItemObject(object item, string path, bool isContainer) =>
+        Host.WriteItemObject(item, path, isContainer);
+
+    private char ItemSeparator => Host.ItemSeparator;
+
+    private object? DynamicParameters => Host.DynamicParameters;
+
+    private string? Filter => Host.Filter;
+
+    private Exception NotImplemented()
+    {
+        throw new PSNotImplementedException("This operation is not currently supported by this provider");
+    }
 }

@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- hack needed here because build assets are ignored in ProjectReferences -->
+  <Import Project="..\..\src\MountAnything.Hosting.Build\build\MountAnything.Hosting.Build.props" />
+  
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PowershellProviderName>MountPowershell</PowershellProviderName>
+    <ProjectGuid>eab62bed-21e8-4da6-9d74-b4a6f81749bf</ProjectGuid>
+    <HostingAbstractionsProjectLocation>$(MSBuildProjectDirectory)\..\..\src\MountAnything.Hosting.Abstractions\MountAnything.Hosting.Abstractions.csproj</HostingAbstractionsProjectLocation>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\MountAnything.Hosting.Build\MountAnything.Hosting.Build.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\MountAnything\MountAnything.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <FormatFile Include="Formats.ps1xml" />
+  </ItemGroup>
+
+  <!-- hack needed here because build assets are ignored in ProjectReferences -->
+  <Import Project="..\..\src\MountAnything.Hosting.Build\build\MountAnything.Hosting.Build.targets" />
+</Project>

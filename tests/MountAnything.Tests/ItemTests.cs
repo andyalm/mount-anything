@@ -136,10 +136,10 @@ public class ItemTests
         public new T? Property<T>(string propertyName) => base.Property<T>(propertyName);
         
         [ItemProperty]
-        public string CustomProperty { get; set; }
+        public string? CustomProperty { get; set; }
         
         [ItemProperty("CustomPropName")]
-        public string CustomPropertyWithName { get; set; }
+        public string? CustomPropertyWithName { get; set; }
     }
 
     public class ItemWithCustomItemType : Item
