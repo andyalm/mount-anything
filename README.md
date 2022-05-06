@@ -4,9 +4,10 @@ A framework for building powershell providers to make it easy to navigate arbitr
 
 ## Getting started
 
-1. Reference the `MountAnything` nuget package in your csproj project that will contain your powershell provider.
-2. Create a class that inherits from `MountAnythingProvider`.
+1. Reference the `MountAnything` and `MountAnything.Hosting.Build` nuget packages in your csproj project that will contain your powershell provider.
+2. Create a class that implements the `IMountAnythingProvider` interface.
 3. Implement the `CreateRouter` method. For information on creating a router, see the [Router](#Router) section below.
+4. When you build your project, it will output a powershell .psd1 module file in a Module subdirectory of your projects output path (e.g. `bin/Debug/net6.0/Module`). You can test it out by importing that module into your powershell session and then using the `New-PSDrive` command to mount your provider to a drive. If you would like your provider to automatically mount a drive when the module is loaded, you can implement the optional `GetDefaultDrives` method in your `IMountAnythingProvider` implementation.
 
 ## Key abstractions
 
