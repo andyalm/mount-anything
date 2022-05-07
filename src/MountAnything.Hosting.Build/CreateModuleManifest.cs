@@ -24,6 +24,10 @@ public class CreateModuleManifest : Microsoft.Build.Utilities.Task
     
     public string? LicenseUri { get; set; }
     
+    public string? IconUri { get; set; }
+    
+    public string? ProjectUri { get; set; }
+    
     public string? PowershellVersion { get; set; }
 
     public ITaskItem[] FormatsToProcess { get; set; } = Array.Empty<ITaskItem>();
@@ -51,7 +55,9 @@ public class CreateModuleManifest : Microsoft.Build.Utilities.Task
             command.AddParameter(nameof(Copyright), Copyright);
             command.AddParameter(nameof(Description), Description);
             command.AddParameter(nameof(ReleaseNotes), ReleaseNotes);
+            command.AddParameter(nameof(IconUri), IconUri);
             command.AddParameter(nameof(LicenseUri), LicenseUri);
+            command.AddParameter(nameof(ProjectUri), ProjectUri);
             command.AddParameter(nameof(FormatsToProcess), FormatsToProcess);
             command.AddParameter(nameof(NestedModules), NestedModules);
             command.AddParameter(nameof(RequiredModules), RequiredModules);
