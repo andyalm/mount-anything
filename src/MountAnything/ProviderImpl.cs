@@ -280,21 +280,12 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     {
         return null;
     }
-    
-    
 
     private void WriteItems<T>(IEnumerable<T> items) where T : IItem
     {
         foreach (var item in items)
         {
-            try
-            {
-                WriteItem(item);
-            }
-            catch (PipelineStoppedException)
-            {
-                break;
-            }
+            WriteItem(item);
         }
     }
     
