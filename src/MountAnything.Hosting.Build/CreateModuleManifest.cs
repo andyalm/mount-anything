@@ -68,7 +68,7 @@ public class CreateModuleManifest : Microsoft.Build.Utilities.Task
 
             this.ExecTask(() => new Exec
             {
-                Command = $"pwsh -Command '{command}'",
+                Command = $"pwsh -Command '{command.Replace("'", "`'")}'",
                 WorkingDirectory = WorkingDirectory.FullPath()
             });
 
