@@ -8,6 +8,8 @@ public interface IItem
     ItemPath FullPath { get; }
     bool IsContainer { get; }
 
+    bool IsPartial => false;
+    
     string ItemName => FullPath.Name;
     IEnumerable<ItemPath> CacheablePaths
     {

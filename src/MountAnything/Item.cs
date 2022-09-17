@@ -19,6 +19,7 @@ public abstract class Item<T> : IItem where T : class
     public ItemPath FullPath => ParentPath.Combine(ItemName);
     public abstract string ItemName { get; }
     public abstract bool IsContainer { get; }
+    public virtual bool IsPartial { get; }
     public T UnderlyingObject { get; }
 
     public virtual string? ItemType => null;

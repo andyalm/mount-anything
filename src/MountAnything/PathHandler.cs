@@ -1,6 +1,3 @@
-using System.Collections.ObjectModel;
-using System.Management.Automation;
-
 namespace MountAnything;
 
 public abstract class PathHandler : IPathHandler
@@ -36,8 +33,8 @@ public abstract class PathHandler : IPathHandler
 
     public IItem? GetItem(Freshness? freshness = null)
     {
-        freshness ??= Freshness.Default;
-        if (Cache.TryGetItem(Path, out var cachedItem) && freshness.IsFresh(cachedItem.FreshnessTimestamp, Context.Force))
+        freshness ??= Freshness.NoPartial;
+        if (Cache.TryGetItem(Path, out var cachedItem) && freshness.IsFresh(cachedItem.FreshnessTimestamp, cachedItem.Item.IsPartial, Context.Force))
         {
             return cachedItem.Item;
         }
@@ -56,7 +53,7 @@ public abstract class PathHandler : IPathHandler
     {
         freshness ??= Freshness.Default;
         if (CacheChildren && Cache.TryGetChildItems(Path, out var cachedObject)
-                          && freshness.IsFresh(cachedObject.FreshnessTimestamp, Context.Force))
+                          && freshness.IsFresh(cachedObject.FreshnessTimestamp, false, Context.Force))
         {
             WriteDebug($"True Cache.TryGetChildItems({Path})");
             return cachedObject.ChildItems;
