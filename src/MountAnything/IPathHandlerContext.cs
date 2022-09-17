@@ -9,4 +9,5 @@ public interface IPathHandlerContext
     void WriteWarning(string message);
     bool Force { get; }
     CommandInvocationIntrinsics InvokeCommand { get; }
+    PSCredential Credential { get; }
 }

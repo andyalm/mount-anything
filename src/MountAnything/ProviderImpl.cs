@@ -46,6 +46,8 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     bool IPathHandlerContext.Force => Host.Force;
     CommandInvocationIntrinsics IPathHandlerContext.InvokeCommand => Host.InvokeCommand;
 
+    PSCredential IPathHandlerContext.Credential => Host.PSDriveInfo.Credential;
+
     public ProviderInfo Start(ProviderInfo providerInfo)
     {
         return providerInfo;
@@ -245,7 +247,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         var defaultDrives = _mountAnythingProvider
             .GetDefaultDrives()
             .Select(defaultDrive => new PSDriveInfo(defaultDrive.Name, Host.ProviderInfo, ItemSeparator.ToString(),
-                defaultDrive.Description, null))
+                defaultDrive.Description, defaultDrive.Credential))
             .ToList();
 
         return new Collection<PSDriveInfo>(defaultDrives);
