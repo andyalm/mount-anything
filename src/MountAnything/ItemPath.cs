@@ -115,7 +115,7 @@ public class ItemPath
         return patternAsRegex.IsMatch(FullName);
     }
     
-    public override bool Equals(object other)
+    public override bool Equals(object? other)
     {
         if (ReferenceEquals(this, other)) return true;
         if (ReferenceEquals(this, null)) return false;
