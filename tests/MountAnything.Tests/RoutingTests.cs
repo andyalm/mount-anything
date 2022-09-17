@@ -200,7 +200,7 @@ public class RoutingTests
         }
 
         public bool Force { get; set; }
-        
+        public PSCredential? Credential => null;
         public CommandInvocationIntrinsics InvokeCommand { get; } = null!;
     }
 }

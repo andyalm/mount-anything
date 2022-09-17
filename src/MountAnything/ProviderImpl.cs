@@ -46,7 +46,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     bool IPathHandlerContext.Force => Host.Force;
     CommandInvocationIntrinsics IPathHandlerContext.InvokeCommand => Host.InvokeCommand;
 
-    PSCredential IPathHandlerContext.Credential => Host.PSDriveInfo.Credential;
+    PSCredential? IPathHandlerContext.Credential => Host.PSDriveInfo.Credential;
 
     public ProviderInfo Start(ProviderInfo providerInfo)
     {
