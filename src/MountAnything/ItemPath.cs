@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace MountAnything;
 
-public record ItemPath
+public class ItemPath
 {
     public static explicit operator string(ItemPath path) => path.FullName;
     public static explicit operator ItemPath(string value) => new(value);
@@ -47,6 +47,11 @@ public record ItemPath
 
     public ItemPath Combine(ItemPath path)
     {
+        if (path.IsRoot)
+        {
+            return this;
+        }
+        
         return Combine(path.Parts);
     }
 
@@ -71,11 +76,61 @@ public record ItemPath
 
         return currentPath;
     }
+    
+    public bool IsAncestorOf(ItemPath otherPath, out string? childPart)
+    {
+        if (IsRoot)
+        {
+            childPart = null;
+            return false;
+        }
+        
+        if (otherPath.IsRoot)
+        {
+            childPart = Parts.First();
+            return true;
+        }
+
+        ItemPath currentPath = Parent;
+        childPart = Name;
+        while (!currentPath.IsRoot)
+        {
+            if (currentPath.FullName.Equals(otherPath.FullName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            childPart = currentPath.Name;
+            currentPath = currentPath.Parent;
+        }
+
+        childPart = null;
+        return false;
+    }
 
     public bool MatchesPattern(ItemPath pathWithPattern)
     {
         var patternAsRegex = new Regex("^" + Regex.Escape(pathWithPattern.FullName).Replace(@"\*", ".*") + "$", RegexOptions.IgnoreCase);
 
         return patternAsRegex.IsMatch(FullName);
+    }
+    
+    public override bool Equals(object other)
+    {
+        if (ReferenceEquals(this, other)) return true;
+        if (ReferenceEquals(this, null)) return false;
+        if (ReferenceEquals(other, null)) return false;
+        if (GetType() != other.GetType()) return false;
+        return Equals(other);
+    }
+    
+    public bool Equals(ItemPath other)
+    {
+        return FullName == other.FullName;
+    }
+
+    public override int GetHashCode()
+    {
+        return FullName.GetHashCode();
     }
 }
