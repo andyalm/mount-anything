@@ -33,6 +33,24 @@ public static class RoutingExtensions
         });
     }
 
+    public static void MapRecursive<THandler, TTypedPath>(this IRoutable router,
+        Action<Route>? createChildRoutes = null)
+        where THandler : IPathHandler
+        where TTypedPath : TypedItemPath
+    {
+        var routeValueName = typeof(TTypedPath).Name;
+        router.MapRegex<THandler>($"(?<{routeValueName}>.+)", route =>
+        {
+            route.RegisterServices((match, builder) =>
+            {
+                builder.Register(_ =>
+                    (TTypedPath)Activator.CreateInstance(typeof(TTypedPath), new ItemPath(match.Values[routeValueName]))!);
+            });
+            createChildRoutes?.Invoke(route);
+        });
+    }
+        
+
     public static void MapLiteral<T>(this IRoutable router, string literal, Action<Route>? createChildRoutes = null)
         where T : IPathHandler
     {
