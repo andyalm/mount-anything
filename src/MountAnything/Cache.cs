@@ -67,6 +67,11 @@ public class Cache
         return false;
     }
 
+    public void RemoveItem(ItemPath path)
+    {
+        _itemsByPath.Remove(path.FullName);
+    }
+
     public string ResolveAlias<TItem>(string identifierOrAlias) where TItem : IItem
     {
         if(_itemIdsByAliases.TryGetValue((typeof(TItem),identifierOrAlias), out var identifier))

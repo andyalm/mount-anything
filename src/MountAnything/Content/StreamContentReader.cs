@@ -1,46 +1,57 @@
 using System.Collections;
 using System.Management.Automation.Provider;
+using Autofac;
 
 namespace MountAnything.Content;
 
-public abstract class StreamContentReader : IContentReader
+internal class StreamContentReader : IContentReader
 {
-    private Lazy<Stream> _contentStream;
+    private readonly Stream _contentStream;
+    private readonly StreamReader _reader;
+    private readonly ILifetimeScope _lifetimeScope;
+    private readonly IPathHandlerContext _context;
 
-    protected StreamContentReader()
+    public StreamContentReader(Stream contentStream, ILifetimeScope lifetimeScope, IPathHandlerContext context)
     {
-        _contentStream = new Lazy<Stream>(CreateContentStream);
+        _contentStream = contentStream;
+        _reader = new StreamReader(contentStream);
+        _lifetimeScope = lifetimeScope;
+        _context = context;
     }
-
-    protected abstract Stream CreateContentStream();
 
     public void Dispose()
     {
-        Close();
+        try
+        {
+            _contentStream.Dispose();
+        }
+        finally
+        {
+            _lifetimeScope.Dispose();
+        }
     }
 
     public void Close()
     {
-        if (_contentStream.IsValueCreated)
-        {
-            _contentStream.Value.Close();
-            _contentStream = new Lazy<Stream>(CreateContentStream);
-        }
+        _contentStream.Close();
     }
 
     public IList Read(long readCount)
     {
+        _context.WriteDebug($"StreamContentReader.Read({readCount})");
         var blocks = new List<string>();
-
-        var reader = new StreamReader(_contentStream.Value);
-        // It is observed that displaying content can be slow especially on xterm cases.
-        // Thus by default, we read them all and return all once. This means the user cannot use
-        // Get-Content -TotalCount feature, which is fine comparing the speed of displaying content output.
-        var content = reader.ReadToEnd();
-        if (content.Length > 0)
+        
+        while (!_reader.EndOfStream && blocks.Count < readCount)
         {
-            // For some reason ReadToEnd() or Readline() inserts LF at the end. So trim them off here.
-            blocks.Add(content.TrimEnd(Environment.NewLine.ToCharArray()));
+            var line = _reader.ReadLine();
+            if (line != null)
+            {
+                blocks.Add(line);
+            }
+            else
+            {
+                break;
+            }
         }
 
         return blocks;
@@ -48,6 +59,7 @@ public abstract class StreamContentReader : IContentReader
 
     public void Seek(long offset, SeekOrigin origin)
     {
-        _contentStream.Value.Seek(offset, origin);
+        _context.WriteDebug($"StreamContentReader.Seek({offset}, {origin})");
+        _contentStream.Seek(offset, origin);
     }
 }

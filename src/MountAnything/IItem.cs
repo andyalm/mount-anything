@@ -11,6 +11,7 @@ public interface IItem
     bool IsPartial => false;
     
     string ItemName => FullPath.Name;
+    string? ItemType => null;
     IEnumerable<ItemPath> CacheablePaths
     {
         get { yield return FullPath; }
