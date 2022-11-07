@@ -286,10 +286,12 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
                             throw new InvalidOperationException($"The item at {path} does not exist");
                         }
                         newItemHandler.NewItem(sourceItem.ItemType, null);
-                        using var sourceStream = getContentHandler.GetContent();
-                        var destinationStream = setContentHandler.GetWriterStream();
+                        using var contentReader = getContentHandler.GetContentReader();
+                        using var sourceStream = contentReader.GetContentStream();
+                        var destinationWriter = setContentHandler.GetContentWriter();
+                        using var destinationStream = destinationWriter.GetWriterStream();
                         sourceStream.CopyTo(destinationStream);
-                        setContentHandler.WriterFinished(destinationStream);
+                        destinationWriter.WriterFinished(destinationStream);
                     }
                     else
                     {
@@ -512,7 +514,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         var (handler, container) = GetPathHandler(path);
         if (handler is IContentReaderHandler contentReadHandler)
         {
-            return new StreamContentReader(contentReadHandler.GetContent(), container, this);
+            return new StreamContentReader(contentReadHandler.GetContentReader(), container, this);
         }
 
         container.Dispose();
@@ -529,8 +531,8 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         var (handler, container) = GetPathHandler(path);
         if (handler is IContentWriterHandler setContentHandler)
         {
-            var stream = setContentHandler.GetWriterStream();
-            return new StreamContentWriter(stream, setContentHandler, container);
+            var writer = setContentHandler.GetContentWriter();
+            return new StreamContentWriter(writer, container);
         }
 
         container.Dispose();

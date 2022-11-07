@@ -6,15 +6,17 @@ namespace MountAnything.Content;
 
 internal class StreamContentReader : IContentReader
 {
-    private readonly Stream _contentStream;
-    private readonly StreamReader _reader;
+    private readonly IContentStreamReader _contentReader;
+    private readonly Lazy<Stream> _stream;
+    private readonly Lazy<StreamReader> _streamReader;
     private readonly ILifetimeScope _lifetimeScope;
     private readonly IPathHandlerContext _context;
 
-    public StreamContentReader(Stream contentStream, ILifetimeScope lifetimeScope, IPathHandlerContext context)
+    public StreamContentReader(IContentStreamReader reader, ILifetimeScope lifetimeScope, IPathHandlerContext context)
     {
-        _contentStream = contentStream;
-        _reader = new StreamReader(contentStream);
+        _contentReader = reader;
+        _stream = new Lazy<Stream>(() => _contentReader.GetContentStream());
+        _streamReader = new Lazy<StreamReader>(() => new StreamReader(_stream.Value));
         _lifetimeScope = lifetimeScope;
         _context = context;
     }
@@ -23,7 +25,7 @@ internal class StreamContentReader : IContentReader
     {
         try
         {
-            _contentStream.Dispose();
+            _contentReader.Dispose();
         }
         finally
         {
@@ -33,7 +35,10 @@ internal class StreamContentReader : IContentReader
 
     public void Close()
     {
-        _contentStream.Close();
+        if (_streamReader.IsValueCreated)
+        {
+            _streamReader.Value.Dispose();
+        }
     }
 
     public IList Read(long readCount)
@@ -41,9 +46,9 @@ internal class StreamContentReader : IContentReader
         _context.WriteDebug($"StreamContentReader.Read({readCount})");
         var blocks = new List<string>();
         
-        while (!_reader.EndOfStream && blocks.Count < readCount)
+        while (!_streamReader.Value.EndOfStream && blocks.Count < readCount)
         {
-            var line = _reader.ReadLine();
+            var line = _streamReader.Value.ReadLine();
             if (line != null)
             {
                 blocks.Add(line);
@@ -60,6 +65,6 @@ internal class StreamContentReader : IContentReader
     public void Seek(long offset, SeekOrigin origin)
     {
         _context.WriteDebug($"StreamContentReader.Seek({offset}, {origin})");
-        _contentStream.Seek(offset, origin);
+        _stream.Value.Seek(offset, origin);
     }
 }
