@@ -1,6 +1,6 @@
 namespace MountAnything.Content;
 
-public class HttpResponseContentReader : IContentStreamReader
+public class HttpResponseContentReader : IStreamContentReader
 {
     private readonly HttpResponseMessage _response;
 

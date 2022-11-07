@@ -1,70 +1,26 @@
-using System.Collections;
-using System.Management.Automation.Provider;
-using Autofac;
-
 namespace MountAnything.Content;
 
-internal class StreamContentReader : IContentReader
+/// <summary>
+/// A simple <see cref="IStreamContentReader"/> implementation that wraps a <see cref="Stream"/>
+/// </summary>
+public class StreamContentReader : IStreamContentReader
 {
-    private readonly IContentStreamReader _contentReader;
-    private readonly Lazy<Stream> _stream;
-    private readonly Lazy<StreamReader> _streamReader;
-    private readonly ILifetimeScope _lifetimeScope;
-    private readonly IPathHandlerContext _context;
+    private readonly Stream _stream;
+    private readonly Action? _onDispose;
 
-    public StreamContentReader(IContentStreamReader reader, ILifetimeScope lifetimeScope, IPathHandlerContext context)
+    public StreamContentReader(Stream stream, Action? onDispose = null)
     {
-        _contentReader = reader;
-        _stream = new Lazy<Stream>(() => _contentReader.GetContentStream());
-        _streamReader = new Lazy<StreamReader>(() => new StreamReader(_stream.Value));
-        _lifetimeScope = lifetimeScope;
-        _context = context;
+        _stream = stream;
+        _onDispose = onDispose;
     }
 
+    public Stream GetContentStream()
+    {
+        return _stream;
+    }
+    
     public void Dispose()
     {
-        try
-        {
-            _contentReader.Dispose();
-        }
-        finally
-        {
-            _lifetimeScope.Dispose();
-        }
-    }
-
-    public void Close()
-    {
-        if (_streamReader.IsValueCreated)
-        {
-            _streamReader.Value.Dispose();
-        }
-    }
-
-    public IList Read(long readCount)
-    {
-        _context.WriteDebug($"StreamContentReader.Read({readCount})");
-        var blocks = new List<string>();
-        
-        while (!_streamReader.Value.EndOfStream && blocks.Count < readCount)
-        {
-            var line = _streamReader.Value.ReadLine();
-            if (line != null)
-            {
-                blocks.Add(line);
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return blocks;
-    }
-
-    public void Seek(long offset, SeekOrigin origin)
-    {
-        _context.WriteDebug($"StreamContentReader.Seek({offset}, {origin})");
-        _stream.Value.Seek(offset, origin);
+        _onDispose?.Invoke();
     }
 }

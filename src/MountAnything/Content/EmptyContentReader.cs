@@ -1,6 +1,6 @@
 namespace MountAnything.Content;
 
-public class EmptyContentReader : IContentStreamReader
+public class EmptyContentReader : IStreamContentReader
 {
     public void Dispose()
     {

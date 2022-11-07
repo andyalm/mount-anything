@@ -4,13 +4,13 @@ using Autofac;
 
 namespace MountAnything.Content;
 
-internal class StreamContentWriter : IContentWriter
+internal class ContentWriter : IContentWriter
 {
-    private readonly IContentStreamWriter _writer;
+    private readonly IStreamContentWriter _writer;
     private readonly Lazy<Stream> _stream;
     private readonly ILifetimeScope _lifetimeScope;
     
-    public StreamContentWriter(IContentStreamWriter writer, ILifetimeScope lifetimeScope)
+    public ContentWriter(IStreamContentWriter writer, ILifetimeScope lifetimeScope)
     {
         _writer = writer;
         _stream = new Lazy<Stream>(writer.GetWriterStream);

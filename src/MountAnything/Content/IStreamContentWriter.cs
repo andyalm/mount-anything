@@ -1,6 +1,6 @@
 namespace MountAnything.Content;
 
-public interface IContentStreamWriter
+public interface IStreamContentWriter
 {
     Stream GetWriterStream();
     

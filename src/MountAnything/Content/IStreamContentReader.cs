@@ -1,6 +1,6 @@
 namespace MountAnything.Content;
 
-public interface IContentStreamReader : IDisposable
+public interface IStreamContentReader : IDisposable
 {
     Stream GetContentStream();
 }

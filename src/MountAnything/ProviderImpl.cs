@@ -514,7 +514,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         var (handler, container) = GetPathHandler(path);
         if (handler is IContentReaderHandler contentReadHandler)
         {
-            return new StreamContentReader(contentReadHandler.GetContentReader(), container, this);
+            return new ContentReader(contentReadHandler.GetContentReader(), container, this);
         }
 
         container.Dispose();
@@ -532,7 +532,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         if (handler is IContentWriterHandler setContentHandler)
         {
             var writer = setContentHandler.GetContentWriter();
-            return new StreamContentWriter(writer, container);
+            return new ContentWriter(writer, container);
         }
 
         container.Dispose();
