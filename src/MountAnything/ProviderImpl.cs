@@ -41,7 +41,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     }
 
     private Router Router => _router;
-    public Cache Cache => _cache;
+    public ICache Cache => _cache;
     
     bool IPathHandlerContext.Force => Host.Force;
     CommandInvocationIntrinsics IPathHandlerContext.InvokeCommand => Host.InvokeCommand;
@@ -64,6 +64,8 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     public bool ItemExists(string path)
     {
         //WriteDebug($"ItemExists({path})");
+        //When doing wildcard expansion, the ItemExists method can be called with the wildcard in the path
+        //By returning false, we let powershell proceed with trying to expand the path.
         if (path.Contains("*"))
         {
             return false;

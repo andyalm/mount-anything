@@ -188,7 +188,7 @@ public class RoutingTests
     
     private class FakeHandlerContext : IPathHandlerContext
     {
-        public Cache Cache { get; } = new();
+        public ICache Cache { get; } = new Cache();
         public void WriteDebug(string message)
         {
             

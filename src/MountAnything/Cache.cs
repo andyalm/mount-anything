@@ -1,6 +1,6 @@
 namespace MountAnything;
 
-public class Cache
+public class Cache : ICache
 {
     private readonly Dictionary<string, CachedItem> _itemsByPath = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<(Type ItemType, string Alias), string> _itemIdsByAliases = new();
@@ -31,15 +31,15 @@ public class Cache
         }
     }
 
-    public bool TryGetItem(ItemPath path, out (IItem Item, DateTimeOffset FreshnessTimestamp) cachedObject)
+    public bool TryGetItem(ItemPath path, Freshness freshness, out IItem cachedItem)
     {
-        if (_itemsByPath.TryGetValue(path.FullName, out var cachedItem))
+        if (_itemsByPath.TryGetValue(path.FullName, out var cachedObject) && freshness.IsFresh(cachedObject.FreshnessTimestamp, cachedObject.Item.IsPartial))
         {
-            cachedObject = (cachedItem.Item, cachedItem.FreshnessTimestamp);
+            cachedItem = cachedObject.Item;
             return true;
         }
 
-        cachedObject = default!;
+        cachedItem = default!;
         return false;
     }
     
@@ -54,16 +54,15 @@ public class Cache
         cachedItem.ChildPaths = childItems.Select(i => i.FullPath).ToList();
     }
 
-    public bool TryGetChildItems(ItemPath path, out (IEnumerable<IItem> ChildItems, DateTimeOffset FreshnessTimestamp) cachedObject)
+    public bool TryGetChildItems(ItemPath path, Freshness freshness, out IEnumerable<IItem> cachedChildItems)
     {
-        if (_itemsByPath.TryGetValue(path.FullName, out var cachedItem) && cachedItem.ChildPaths != null)
+        if (_itemsByPath.TryGetValue(path.FullName, out var cachedItem) && cachedItem.ChildPaths != null && freshness.IsFresh(cachedItem.FreshnessTimestamp, false))
         {
-            var childItems = cachedItem.ChildPaths.Select(childPath => _itemsByPath[childPath.FullName].Item).ToArray();
-            cachedObject = (childItems, cachedItem.FreshnessTimestamp);
+            cachedChildItems  = cachedItem.ChildPaths.Select(childPath => _itemsByPath[childPath.FullName].Item).ToArray();
             return true;
         }
 
-        cachedObject = default!;
+        cachedChildItems = default!;
         return false;
     }
 

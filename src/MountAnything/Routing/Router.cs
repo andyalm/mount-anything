@@ -40,7 +40,7 @@ public class Router : IRoutable
         {
             resolver.ServiceRegistrations.Invoke(builder);
             builder.RegisterInstance(path);
-            builder.RegisterInstance(context);
+            builder.RegisterInstance(new RequestCachePathHandlerContext(context));
         });
         var handler = (IPathHandler)lifetimeScope.Resolve(resolver.HandlerType);
 

@@ -24,28 +24,27 @@ public abstract class Freshness
     /// </summary>
     public static Freshness Fastest { get; } = new FastestFreshness();
 
-    public abstract bool IsFresh(DateTimeOffset cachedTimestamp, bool isPartialItem, bool force);
+    public abstract bool IsFresh(DateTimeOffset cachedTimestamp, bool isPartialItem);
     
     private class DefaultFreshness : Freshness
     {
-        public override bool IsFresh(DateTimeOffset cachedTimestamp, bool isPartialItem, bool force) =>
-            !force;
+        public override bool IsFresh(DateTimeOffset cachedTimestamp, bool isPartialItem) => 
+            cachedTimestamp.AddMinutes(15) > DateTimeOffset.UtcNow;
     }
     
     private class GuaranteedFreshness : Freshness
     {
-        public override bool IsFresh(DateTimeOffset cachedTimestamp, bool isPartialItem, bool force) =>
-            !force && cachedTimestamp.AddSeconds(15) > DateTimeOffset.UtcNow;
+        public override bool IsFresh(DateTimeOffset cachedTimestamp, bool isPartialItem) => false;
     }
     
     private class FastestFreshness : Freshness
     {
-        public override bool IsFresh(DateTimeOffset cachedTimestamp, bool isPartialItem, bool force) => 
+        public override bool IsFresh(DateTimeOffset cachedTimestamp, bool isPartialItem) => 
             cachedTimestamp.AddHours(4) > DateTimeOffset.UtcNow;
     }
     
-    private class NoPartialFreshness : Freshness
+    private class NoPartialFreshness : DefaultFreshness
     {
-        public override bool IsFresh(DateTimeOffset cachedTimestamp, bool isPartialItem, bool force) => !isPartialItem;
+        public override bool IsFresh(DateTimeOffset cachedTimestamp, bool isPartialItem) => !isPartialItem && base.IsFresh(cachedTimestamp, isPartialItem);
     }
 }

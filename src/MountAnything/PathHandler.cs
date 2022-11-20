@@ -14,7 +14,7 @@ public abstract class PathHandler : IPathHandler
     
     protected LinkGenerator LinkGenerator { get; }
 
-    protected Cache Cache => Context.Cache;
+    protected ICache Cache => Context.Cache;
     protected void WriteDebug(string message) => Context.WriteDebug(message);
     protected void WriteWarning(string message) => Context.WriteWarning(message);
 
@@ -23,7 +23,7 @@ public abstract class PathHandler : IPathHandler
 
     public bool Exists()
     {
-        if (Cache.TryGetItem(Path, out _))
+        if (Cache.TryGetItem(Path, Freshness.Fastest, out _))
         {
             return true;
         }
@@ -34,9 +34,9 @@ public abstract class PathHandler : IPathHandler
     public IItem? GetItem(Freshness? freshness = null)
     {
         freshness ??= Freshness.NoPartial;
-        if (Cache.TryGetItem(Path, out var cachedItem) && freshness.IsFresh(cachedItem.FreshnessTimestamp, cachedItem.Item.IsPartial, Context.Force))
+        if (Cache.TryGetItem(Path, freshness, out var cachedItem))
         {
-            return cachedItem.Item;
+            return cachedItem;
         }
 
         var item = GetItemImpl();
@@ -52,11 +52,10 @@ public abstract class PathHandler : IPathHandler
     public IEnumerable<IItem> GetChildItems(Freshness? freshness = null)
     {
         freshness ??= Freshness.Default;
-        if (CacheChildren && Cache.TryGetChildItems(Path, out var cachedObject)
-                          && freshness.IsFresh(cachedObject.FreshnessTimestamp, false, Context.Force))
+        if (CacheChildren && Cache.TryGetChildItems(Path, freshness, out var cachedChildItems))
         {
             WriteDebug($"True Cache.TryGetChildItems({Path})");
-            return cachedObject.ChildItems;
+            return cachedChildItems;
         }
         WriteDebug($"False Cache.TryGetChildItems({Path})");
 
