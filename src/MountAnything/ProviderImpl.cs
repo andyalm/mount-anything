@@ -200,6 +200,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public void RemoveItem(string path, bool recurse)
     {
+        WriteDebug($"RemoveItem({path}, {recurse})");
         WithPathHandler(path, handler =>
         {
             if (handler is IRemoveItemHandler removeItemHandler)
@@ -255,7 +256,11 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public void RenameItem(string path, string newName)
     {
-        throw NotImplemented();
+        WriteDebug($"RenameItem({path}, {newName})");
+        var parentPath = new ItemPath(path).Parent;
+        var destination = parentPath.Combine(newName);
+        MoveItem(path, destination.FullName);
+        Cache.RemoveItem(parentPath);
     }
 
     public object? RenameItemDynamicParameters(string path, string newName)
@@ -265,22 +270,73 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public void CopyItem(string path, string copyPath, bool recurse)
     {
-        throw NotImplemented();
+        WriteDebug($"CopyItem({path}, {copyPath}, {recurse})");
+        WithPathHandler(path, sourceHandler =>
+        {
+            sourceHandler.SetDynamicParameters(typeof(ICopyItemParameters<>), DynamicParameters);
+            if (sourceHandler is IContentReaderHandler getContentHandler)
+            {
+                WithPathHandler(copyPath, destinationHandler =>
+                {
+                    if (destinationHandler is INewItemHandler newItemHandler && destinationHandler is IContentWriterHandler setContentHandler)
+                    {
+                        var sourceItem = sourceHandler.GetItem();
+                        if (sourceItem == null)
+                        {
+                            throw new InvalidOperationException($"The item at {path} does not exist");
+                        }
+                        newItemHandler.NewItem(sourceItem.ItemType, null);
+                        using var contentReader = getContentHandler.GetContentReader();
+                        using var sourceStream = contentReader.GetContentStream();
+                        var destinationWriter = setContentHandler.GetContentWriter();
+                        using var destinationStream = destinationWriter.GetWriterStream();
+                        sourceStream.CopyTo(destinationStream);
+                        destinationWriter.WriterFinished(destinationStream);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            "The powershell provider does not currently support coping this item");
+                    }
+                });
+            }
+            else
+            {
+                throw new InvalidOperationException($"The powershell provider does not currently support copying this item");
+            }
+        });
     }
 
     public object? CopyItemDynamicParameters(string path, string destination, bool recurse)
     {
-        return null;
+        try
+        {
+            return GetDynamicParameters(path, typeof(ICopyItemParameters<>));
+        }
+        catch (Exception ex)
+        {
+            WriteDebug(ex.ToString());
+            return null;
+        }
     }
 
     public void MoveItem(string path, string destination)
     {
-        throw NotImplemented();
+        CopyItem(path, destination, true);
+        RemoveItem(path, true);
     }
 
     public object? MoveItemDynamicParameters(string path, string destination)
     {
-        return null;
+        try
+        {
+            return GetDynamicParameters(path, typeof(ICopyItemParameters<>));
+        }
+        catch (Exception ex)
+        {
+            WriteDebug(ex.ToString());
+            return null;
+        }
     }
 
     private void WriteItems<T>(IEnumerable<T> items) where T : IItem
@@ -458,7 +514,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         var (handler, container) = GetPathHandler(path);
         if (handler is IContentReaderHandler contentReadHandler)
         {
-            return new HandlerDisposingProxy(container, contentReadHandler.GetContentReader());
+            return new ContentReader(contentReadHandler.GetContentReader(), container, this);
         }
 
         container.Dispose();
@@ -473,9 +529,10 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     public IContentWriter GetContentWriter(string path)
     {
         var (handler, container) = GetPathHandler(path);
-        if (handler is IContentWriterHandler contentWriteHandler)
+        if (handler is IContentWriterHandler setContentHandler)
         {
-            return new HandlerDisposingProxy(container, contentWriteHandler.GetContentWriter());
+            var writer = setContentHandler.GetContentWriter();
+            return new ContentWriter(writer, container);
         }
 
         container.Dispose();
