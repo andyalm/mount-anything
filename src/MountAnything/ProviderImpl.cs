@@ -459,12 +459,32 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public void InvokeDefaultAction(string path)
     {
-        throw NotImplemented();
+        WriteDebug($"InvokeDefaultAction({path})");
+        WithPathHandler(path, handler =>
+        {
+            if (handler is IInvokeDefaultActionHandler invokeHandler)
+            {
+                handler.SetDynamicParameters(typeof(IInvokeDefaultActionParameters<>), DynamicParameters);
+                invokeHandler.InvokeDefaultAction();
+            }
+            else
+            {
+                throw new InvalidOperationException($"The powershell provider does not currently support invoking this item");
+            }
+        });
     }
 
     public object? InvokeDefaultActionDynamicParameters(string path)
     {
-        return null;
+        try
+        {
+            return GetDynamicParameters(path, typeof(IInvokeDefaultActionParameters<>));
+        }
+        catch (Exception ex)
+        {
+            WriteDebug(ex.ToString());
+            return null;
+        }
     }
 
     public string[] ExpandPath(string path)
