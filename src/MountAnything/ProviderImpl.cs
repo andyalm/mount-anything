@@ -115,15 +115,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public object? GetItemDynamicParameters(string path)
     {
-        try
-        {
-            return GetDynamicParameters(path, typeof(IGetItemParameters<>));
-        }
-        catch (Exception ex)
-        {
-            WriteDebug(ex.ToString());
-            return null;
-        }
+        return GetDynamicParameters(path, typeof(IGetItemParameters<>));
     }
 
     public void GetChildItems(string path, bool recurse)
@@ -141,15 +133,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public object? GetChildItemsDynamicParameters(string path, bool recurse)
     {
-        try
-        {
-            return GetDynamicParameters(path, typeof(IGetChildItemParameters<>));
-        }
-        catch (Exception ex)
-        {
-            WriteDebug(ex.ToString());
-            return null;
-        }
+        return GetDynamicParameters(path, typeof(IGetChildItemParameters<>));
     }
 
     public void GetChildItems(string path, bool recurse, uint depth)
@@ -187,15 +171,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public object? NewItemDynamicParameters(string path, string itemTypeName, object newItemValue)
     {
-        try
-        {
-            return GetDynamicParameters(path, typeof(INewItemParameters<>));
-        }
-        catch (Exception ex)
-        {
-            WriteDebug(ex.ToString());
-            return null;
-        }
+        return GetDynamicParameters(path, typeof(INewItemParameters<>));
     }
 
     public void RemoveItem(string path, bool recurse)
@@ -217,15 +193,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public object? RemoveItemDynamicParameters(string path, bool recurse)
     {
-        try
-        {
-            return GetDynamicParameters(path, typeof(IRemoveItemParameters<>));
-        }
-        catch (Exception ex)
-        {
-            WriteDebug(ex.ToString());
-            return null;
-        }
+        return GetDynamicParameters(path, typeof(IRemoveItemParameters<>));
     }
 
     public PSDriveInfo NewDrive(PSDriveInfo drive)
@@ -273,7 +241,6 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         WriteDebug($"CopyItem({path}, {copyPath}, {recurse})");
         WithPathHandler(path, sourceHandler =>
         {
-            sourceHandler.SetDynamicParameters(typeof(ICopyItemParameters<>), DynamicParameters);
             if (sourceHandler is IContentReaderHandler getContentHandler)
             {
                 WithPathHandler(copyPath, destinationHandler =>
@@ -309,15 +276,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public object? CopyItemDynamicParameters(string path, string destination, bool recurse)
     {
-        try
-        {
-            return GetDynamicParameters(path, typeof(ICopyItemParameters<>));
-        }
-        catch (Exception ex)
-        {
-            WriteDebug(ex.ToString());
-            return null;
-        }
+        return null;
     }
 
     public void MoveItem(string path, string destination)
@@ -328,15 +287,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public object? MoveItemDynamicParameters(string path, string destination)
     {
-        try
-        {
-            return GetDynamicParameters(path, typeof(ICopyItemParameters<>));
-        }
-        catch (Exception ex)
-        {
-            WriteDebug(ex.ToString());
-            return null;
-        }
+        return null;
     }
 
     private void WriteItems<T>(IEnumerable<T> items) where T : IItem
@@ -396,10 +347,18 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     
     private object? GetDynamicParameters(string path, Type handlerParameterInterface)
     {
-        var itemPath = new ItemPath(path);
-        var handlerResolver = Router.GetResolver(itemPath);
+        try
+        {
+            var itemPath = new ItemPath(path);
+            var handlerResolver = Router.GetResolver(itemPath);
 
-        return handlerResolver.CreateDynamicParameters(handlerParameterInterface);
+            return handlerResolver.CreateDynamicParameters(handlerParameterInterface);
+        }
+        catch (Exception ex)
+        {
+            WriteDebug(ex.ToString());
+            return null;
+        }
     }
     
     public string ToProviderPath(ItemPath path)
@@ -439,22 +398,46 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public void SetItem(string path, object value)
     {
-        throw NotImplemented();
+        WriteDebug($"ClearItem({path})");
+        WithPathHandler(path, handler =>
+        {
+            if (handler is ISetItemHandler setItemHandler)
+            {
+                handler.SetDynamicParameters(typeof(ISetItemParameters<>), DynamicParameters);
+                setItemHandler.SetItem(value);
+            }
+            else
+            {
+                throw new InvalidOperationException($"The powershell provider does not currently support the Set-Item command against this item");
+            }
+        });
     }
 
     public object? SetItemDynamicParameters(string path, object value)
     {
-        return null;
+        return GetDynamicParameters(path, typeof(ISetItemParameters<>));
     }
 
     public void ClearItem(string path)
     {
-        throw NotImplemented();
+        WriteDebug($"ClearItem({path})");
+        WithPathHandler(path, handler =>
+        {
+            if (handler is IClearItemHandler clearItemHandler)
+            {
+                handler.SetDynamicParameters(typeof(IClearItemParameters<>), DynamicParameters);
+                clearItemHandler.ClearItem();
+            }
+            else
+            {
+                throw new InvalidOperationException($"The powershell provider does not currently support the Clear-Item command");
+            }
+        });
     }
 
     public object? ClearItemDynamicParameters(string path)
     {
-        return null;
+        return GetDynamicParameters(path, typeof(IClearItemParameters<>));
     }
 
     public void InvokeDefaultAction(string path)
@@ -476,15 +459,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public object? InvokeDefaultActionDynamicParameters(string path)
     {
-        try
-        {
-            return GetDynamicParameters(path, typeof(IInvokeDefaultActionParameters<>));
-        }
-        catch (Exception ex)
-        {
-            WriteDebug(ex.ToString());
-            return null;
-        }
+        return GetDynamicParameters(path, typeof(IInvokeDefaultActionParameters<>));
     }
 
     public string[] ExpandPath(string path)
@@ -570,18 +545,31 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public void ClearProperty(string path, Collection<string> propertyToClear)
     {
-        throw new NotSupportedException("Only reading properties is currently supported by this provider");
+        WriteDebug($"ClearProperty({path})");
+        WithPathHandler(path, handler =>
+        {
+            if (handler is IClearItemPropertiesHandler clearPropertyHandler)
+            {
+                handler.SetDynamicParameters(typeof(IClearItemPropertiesParameters<>), DynamicParameters);
+                clearPropertyHandler.ClearItemProperties(propertyToClear);
+            }
+            else
+            {
+                throw new InvalidOperationException($"The powershell provider does not currently support clearing properties of this item");
+            }
+        });
     }
 
     public object? ClearPropertyDynamicParameters(string path, Collection<string> propertyToClear)
     {
-        return null;
+        return GetDynamicParameters(path, typeof(IClearItemPropertiesParameters<>));
     }
 
     public void GetProperty(string path, Collection<string> providerSpecificPickList)
     {
         WithPathHandler(path, handler =>
         {
+            handler.SetDynamicParameters(typeof(IGetItemPropertiesParameters<>), DynamicParameters);
             var propertyNames = providerSpecificPickList.ToHashSet();
             var itemProperties = handler
                 .GetItemProperties(propertyNames, ToFullyQualifiedProviderPath)
@@ -591,23 +579,36 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
             {
                 propertyObject.Properties.Add(new PSNoteProperty(itemProperty.Name, itemProperty.Value));
             }
+
             WritePropertyObject(propertyObject, path);
         });
     }
 
     public object? GetPropertyDynamicParameters(string path, Collection<string> providerSpecificPickList)
     {
-        return null;
+        return GetDynamicParameters(path, typeof(IGetItemPropertiesParameters<>));
     }
 
     public void SetProperty(string path, PSObject propertyValue)
     {
-        throw new NotSupportedException("Only reading properties is currently supported by this provider");
+        WriteDebug($"SetProperty({path}, <propertyValue>)");
+        WithPathHandler(path, handler =>
+        {
+            if (handler is ISetItemPropertiesHandler setPropertyHandler)
+            {
+                handler.SetDynamicParameters(typeof(ISetItemPropertiesParameters<>), DynamicParameters);
+                setPropertyHandler.SetItemProperties(propertyValue.AsItemProperties().ToList());
+            }
+            else
+            {
+                throw new InvalidOperationException($"The powershell provider does not currently support setting properties for this item");
+            }
+        });
     }
 
     public object? SetPropertyDynamicParameters(string path, PSObject propertyValue)
     {
-        return null;
+        return GetDynamicParameters(path, typeof(ISetItemPropertiesParameters<>));
     }
 
     #endregion
@@ -631,9 +632,4 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     private object? DynamicParameters => Host.DynamicParameters;
 
     private string? Filter => Host.Filter;
-
-    private Exception NotImplemented()
-    {
-        throw new PSNotImplementedException("This operation is not currently supported by this provider");
-    }
 }
