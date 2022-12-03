@@ -448,7 +448,11 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
             if (handler is IInvokeDefaultActionHandler invokeHandler)
             {
                 handler.SetDynamicParameters(typeof(IInvokeDefaultActionParameters<>), DynamicParameters);
-                invokeHandler.InvokeDefaultAction();
+                var resultingItems = invokeHandler.InvokeDefaultAction();
+                if (resultingItems != null)
+                {
+                    WriteItems(resultingItems);
+                }
             }
             else
             {
