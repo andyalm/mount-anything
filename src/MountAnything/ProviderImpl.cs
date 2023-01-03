@@ -45,8 +45,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     
     bool IPathHandlerContext.Force => Host.Force;
     CommandInvocationIntrinsics IPathHandlerContext.InvokeCommand => Host.InvokeCommand;
-
-    PSCredential? IPathHandlerContext.Credential => Host.PSDriveInfo.Credential;
+    PSDriveInfo IPathHandlerContext.DriveInfo => Host.PSDriveInfo;
 
     public ProviderInfo Start(ProviderInfo providerInfo)
     {
@@ -198,12 +197,16 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public PSDriveInfo NewDrive(PSDriveInfo drive)
     {
-        return drive;
+        WriteDebug($"NewDrive({drive.Name})");
+        var driveHandler = _mountAnythingProvider.GetDriveHandler();
+        driveHandler.SetDynamicParameters(typeof(INewDriveParameters<>), DynamicParameters);
+
+        return driveHandler.NewDrive(drive);
     }
 
     public object? NewDriveDynamicParameters()
     {
-        return null;
+        return _mountAnythingProvider.GetDriveHandler().CreateDynamicParameters(typeof(INewDriveParameters<>));
     }
 
     public PSDriveInfo RemoveDrive(PSDriveInfo drive)
