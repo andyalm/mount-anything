@@ -10,8 +10,8 @@ public abstract class ItemNavigator<TModel,TItem> where TItem : IItem
     public IEnumerable<TItem> ListChildItems(ItemPath parentPath, ItemPath? pathPrefix = null)
     {
         var allModels = ListItems(pathPrefix).ToArray();
-        var directories = Directories(allModels, pathPrefix);
-        var childRoles = Children(allModels, pathPrefix);
+        var directories = Directories(allModels, pathPrefix).ToArray();
+        var childRoles = Children(allModels, pathPrefix).ToArray();
 
         
         return directories.OrderBy(d => d.ToString())
@@ -25,7 +25,7 @@ public abstract class ItemNavigator<TModel,TItem> where TItem : IItem
         return (from obj in models
             let modelPath = GetPath(obj)
             where !modelPath.IsRoot && modelPath.Parent.IsAncestorOf(pathPrefix ?? ItemPath.Root, out childName)
-            select childName).Cast<string>().Distinct();
+            select childName).Distinct();
     }
     
     private IEnumerable<TModel> Children(IEnumerable<TModel> models, ItemPath? pathPrefix)

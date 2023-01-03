@@ -1,5 +1,3 @@
-using Autofac;
-
 namespace MountAnything.Routing;
 
 public interface IRoutable

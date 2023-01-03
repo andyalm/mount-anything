@@ -23,7 +23,7 @@ public abstract class Item<T> : IItem where T : class
     public T UnderlyingObject { get; }
 
     public virtual string? ItemType => null;
-    protected virtual string TypeName => UnderlyingObject.GetType().FullName!;
+    protected virtual string TypeName => GetType().FullName!;
     public virtual IEnumerable<string> Aliases => Enumerable.Empty<string>();
 
     public IEnumerable<ItemPath> CacheablePaths
@@ -105,8 +105,6 @@ public abstract class Item : Item<PSObject>
     protected Item(ItemPath parentPath, object underlyingObject) : base(parentPath, new PSObject(underlyingObject))
     {
     }
-
-    protected override string TypeName => UnderlyingObject.TypeNames.FirstOrDefault() ?? typeof(PSObject).FullName!;
 
     protected T? Property<T>(string name)
     {

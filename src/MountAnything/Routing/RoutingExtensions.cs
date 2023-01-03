@@ -5,7 +5,7 @@ namespace MountAnything.Routing;
 
 public static class RoutingExtensions
 {
-    private const string ItemRegex = @"[a-z0-9-_\.]+";
+    private const string ItemRegex = @"[a-z0-9-_\.:]+";
     
     public static void Map<T>(this IRoutable router, Action<Route>? createChildRoutes = null) where T : IPathHandler
     {
@@ -26,7 +26,7 @@ public static class RoutingExtensions
         {
             route.RegisterServices((match, builder) =>
             {
-                builder.Register(c =>
+                builder.Register(_ =>
                     (TTypedString)Activator.CreateInstance(typeof(TTypedString), match.Values[routeValueName])!);
             });
             createChildRoutes.Invoke(route);
