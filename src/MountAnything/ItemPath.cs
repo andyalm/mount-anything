@@ -26,6 +26,10 @@ public class ItemPath
         {
             normalizedPath = normalizedPath.Substring(1);
         }
+        if (normalizedPath.EndsWith(Separator))
+        {
+            normalizedPath = normalizedPath.Remove(normalizedPath.Length - 1);
+        }
 
         FullName = normalizedPath;
         _parent = new Lazy<ItemPath>(() => new ItemPath(GetParent(normalizedPath)));

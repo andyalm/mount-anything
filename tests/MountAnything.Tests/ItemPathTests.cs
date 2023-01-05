@@ -13,6 +13,14 @@ public class ItemPathTests
 
         path.FullName.Should().Be("services/ec2/instances");
     }
+    
+    [Fact]
+    public void TrailingSlashIsRemovedOnConstruction()
+    {
+        var path = new ItemPath("/services/ec2/instances/");
+
+        path.FullName.Should().Be("services/ec2/instances");
+    }
 
     [Fact]
     public void BackslashesNormalizedAsForwardSlashes()
