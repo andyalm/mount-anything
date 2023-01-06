@@ -581,10 +581,10 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
             var itemProperties = handler
                 .GetItemProperties(propertyNames, ToFullyQualifiedProviderPath)
                 .WherePropertiesMatch(propertyNames);
-            var propertyObject = new PSObject();
+            var propertyObject = new Hashtable();
             foreach (var itemProperty in itemProperties)
             {
-                propertyObject.Properties.Add(new PSNoteProperty(itemProperty.Name, itemProperty.Value));
+                propertyObject.Add(itemProperty.Name, itemProperty.Value);
             }
 
             WritePropertyObject(propertyObject, path);
