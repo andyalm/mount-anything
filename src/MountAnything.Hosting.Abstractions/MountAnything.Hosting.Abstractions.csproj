@@ -5,7 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageVersion>0.9.0</PackageVersion>
+        <PackageVersion>0.9.1</PackageVersion>
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/andyalm/mount-anything</RepositoryUrl>
         <Authors>Andy Alm</Authors>
@@ -13,6 +13,9 @@
         <Copyright>2022 Andy Alm</Copyright>
         <Title>Mount Anything Hosting Abstractions</Title>
         <Description>This package is intended to be the only assembly loaded into the global AssemblyLoadContext of the powershell process when using the MountAnything framework. It contains two interfaces, both of which are intended to be very stable as they are based on the public interface of the NavigationCmdletProvider base class.</Description>
+        <PackageReleaseNotes>
+            - Added methods to IProviderImpl to support dynamic item property commands
+        </PackageReleaseNotes>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
