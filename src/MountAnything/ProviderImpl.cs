@@ -159,7 +159,8 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
             if (handler is INewItemHandler newItemHandler)
             {
                 handler.SetDynamicParameters(typeof(INewItemParameters<>), DynamicParameters);
-                newItemHandler.NewItem(itemTypeName, newItemValue);
+                var newItem = newItemHandler.NewItem(itemTypeName, newItemValue);
+                WriteItem(newItem);
             }
             else
             {
@@ -618,8 +619,90 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         return GetDynamicParameters(path, typeof(ISetItemPropertiesParameters<>));
     }
 
-    #endregion
+    public void CopyProperty(string sourcePath, string sourceProperty, string destinationPath, string destinationProperty)
+    {
+        //TODO: Implement support
+        throw NotSupported("Copy-ItemProperty");
+    }
 
+    public object? CopyPropertyDynamicParameters(string sourcePath, string sourceProperty, string destinationPath,
+        string destinationProperty)
+    {
+        //TODO: Implement support
+        return null;
+    }
+
+    public void MoveProperty(string sourcePath, string sourceProperty, string destinationPath, string destinationProperty)
+    {
+        //TODO: Implement support
+        throw NotSupported("Move-ItemProperty");
+    }
+
+    public object? MovePropertyDynamicParameters(string sourcePath, string sourceProperty, string destinationPath,
+        string destinationProperty)
+    {
+        //TODO: Implement support
+        return null;
+    }
+
+    public void NewProperty(string path, string propertyName, string propertyTypeName, object value)
+    {
+        WriteDebug($"NewProperty({path}, {propertyName}, {propertyTypeName}, <propertyValue>)");
+        WithPathHandler(path, handler =>
+        {
+            if (handler is INewItemPropertyHandler newPropertyHandler)
+            {
+                handler.SetDynamicParameters(typeof(INewItemPropertyParameters<>), DynamicParameters);
+                newPropertyHandler.NewItemProperty(propertyName, propertyTypeName, value);
+                WritePropertyObject(new Hashtable { [propertyName] = value }, path);
+            }
+            else
+            {
+                throw NotSupported("New-ItemProperty");
+            }
+        });
+    }
+
+    public object? NewPropertyDynamicParameters(string path, string propertyName, string propertyTypeName, object value)
+    {
+        return GetDynamicParameters(path, typeof(INewItemPropertyParameters<>));
+    }
+
+    public void RemoveProperty(string path, string propertyName)
+    {
+        WriteDebug($"RemoveProperty({path}, {propertyName})");
+        WithPathHandler(path, handler =>
+        {
+            if (handler is IRemoveItemPropertyHandler newPropertyHandler)
+            {
+                handler.SetDynamicParameters(typeof(IRemoveItemPropertyParameters<>), DynamicParameters);
+                newPropertyHandler.RemoveItemProperty(propertyName);
+            }
+            else
+            {
+                throw NotSupported("New-ItemProperty");
+            }
+        });
+    }
+
+    public object? RemovePropertyDynamicParameters(string path, string propertyName)
+    {
+        return GetDynamicParameters(path, typeof(IRemoveItemPropertyParameters<>));
+    }
+
+    public void RenameProperty(string path, string sourceProperty, string destinationProperty)
+    {
+        //TODO: Implement support
+        throw NotSupported("Rename-ItemProperty");
+    }
+
+    public object? RenamePropertyDynamicParameters(string path, string sourceProperty, string destinationProperty)
+    {
+        //TODO: Implement support
+        return null;
+    }
+
+    #endregion
 
     private void WriteError(ErrorRecord error) => Host.WriteError(error);
     void IPathHandlerContext.WriteWarning(string message) => WriteWarning(message);
@@ -639,4 +722,10 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     private object? DynamicParameters => Host.DynamicParameters;
 
     private string? Filter => Host.Filter;
+
+    private Exception NotSupported(string commandName)
+    {
+        throw new PSNotSupportedException(
+            $"The {commandName} command is not currently supported by this Powershell Provider.");
+    }
 }

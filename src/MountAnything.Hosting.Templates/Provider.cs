@@ -7,10 +7,10 @@ using MountAnything.Hosting.Abstractions;
 
 namespace MountAnything.Hosting.Templates;
 
-[CmdletProvider("MyProviderName", ProviderCapabilities.Filter | ProviderCapabilities.ExpandWildcards)]
+[CmdletProvider("MyProviderName", ProviderCapabilities.Filter | ProviderCapabilities.ExpandWildcards | ProviderCapabilities.Credentials)]
 public class Provider : NavigationCmdletProvider,
     IContentCmdletProvider,
-    IPropertyCmdletProvider,
+    IDynamicPropertyCmdletProvider,
     IProviderHost
 {
     private static readonly object _providerMutex = new();
@@ -334,4 +334,55 @@ public class Provider : NavigationCmdletProvider,
     char IProviderHost.ItemSeparator => ItemSeparator;
     PSDriveInfo IProviderHost.PSDriveInfo => PSDriveInfo;
     ProviderInfo IProviderHost.ProviderInfo => ProviderInfo;
+    public void CopyProperty(string sourcePath, string sourceProperty, string destinationPath, string destinationProperty)
+    {
+        ProviderImpl.CopyProperty(sourcePath, sourceProperty, destinationPath, destinationProperty);
+    }
+
+    public object? CopyPropertyDynamicParameters(string sourcePath, string sourceProperty, string destinationPath,
+        string destinationProperty)
+    {
+        return ProviderImpl.CopyPropertyDynamicParameters(sourcePath, sourceProperty, destinationPath, destinationProperty);
+    }
+
+    public void MoveProperty(string sourcePath, string sourceProperty, string destinationPath, string destinationProperty)
+    {
+        ProviderImpl.MoveProperty(sourcePath, sourceProperty, destinationPath, destinationProperty);
+    }
+
+    public object? MovePropertyDynamicParameters(string sourcePath, string sourceProperty, string destinationPath,
+        string destinationProperty)
+    {
+        return ProviderImpl.MovePropertyDynamicParameters(sourcePath, sourceProperty, destinationPath, destinationProperty);
+    }
+
+    public void NewProperty(string path, string propertyName, string propertyTypeName, object value)
+    {
+        ProviderImpl.NewProperty(path, propertyName, propertyTypeName, value);
+    }
+
+    public object? NewPropertyDynamicParameters(string path, string propertyName, string propertyTypeName, object value)
+    {
+        return ProviderImpl.NewPropertyDynamicParameters(path, propertyName, propertyTypeName, value);
+    }
+
+    public void RemoveProperty(string path, string propertyName)
+    {
+        ProviderImpl.RemoveProperty(path, propertyName);
+    }
+
+    public object? RemovePropertyDynamicParameters(string path, string propertyName)
+    {
+        return ProviderImpl.RemovePropertyDynamicParameters(path, propertyName);
+    }
+
+    public void RenameProperty(string path, string sourceProperty, string destinationProperty)
+    {
+        ProviderImpl.RenameProperty(path, sourceProperty, destinationProperty);
+    }
+
+    public object? RenamePropertyDynamicParameters(string path, string sourceProperty, string destinationProperty)
+    {
+        return ProviderImpl.RenamePropertyDynamicParameters(path, sourceProperty, destinationProperty);
+    }
 }
