@@ -1,5 +1,7 @@
 using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Autofac.Features.ResolveAnything;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MountAnything.Routing;
 
@@ -8,7 +10,8 @@ public class Router : IRoutable
     private readonly List<Route> _routes = new();
     private readonly Type _rootHandlerType;
     private readonly Lazy<IContainer> _rootContainer;
-    private Action<ContainerBuilder> _serviceRegistrations = _ => {};
+    private Action<ContainerBuilder> _containerRegistrations = _ => {};
+    private Action<IServiceCollection> _serviceRegistrations = _ => {};
 
     public static Router Create<T>() where T : IPathHandler
     {
@@ -28,9 +31,14 @@ public class Router : IRoutable
         _routes.Add(route);
     }
 
-    public void RegisterServices(Action<ContainerBuilder> serviceRegistration)
+    public void ConfigureServices(Action<IServiceCollection> serviceRegistration)
     {
         _serviceRegistrations += serviceRegistration;
+    }
+
+    public void ConfigureContainer(Action<ContainerBuilder> serviceRegistration)
+    {
+        _containerRegistrations += serviceRegistration;
     }
 
     public (IPathHandler Handler, ILifetimeScope Container) RouteToHandler(ItemPath path, IPathHandlerContext context)
@@ -38,7 +46,7 @@ public class Router : IRoutable
         var resolver = GetResolver(path);
         var lifetimeScope = _rootContainer.Value.BeginLifetimeScope(builder =>
         {
-            resolver.ServiceRegistrations.Invoke(builder);
+            resolver.RegisterServices(builder);
             builder.RegisterInstance(path);
             builder.RegisterInstance(context);
         });
@@ -51,7 +59,7 @@ public class Router : IRoutable
     {
         if (path.IsRoot)
         {
-            return new HandlerResolver(_rootHandlerType, _serviceRegistrations);
+            return new HandlerResolver(_rootHandlerType, _serviceRegistrations, _containerRegistrations);
         }
         
         foreach (var route in _routes)
@@ -70,7 +78,8 @@ public class Router : IRoutable
         var builder = new ContainerBuilder();
         builder.RegisterInstance(this);
         builder.RegisterGeneric(typeof(ItemAncestorResolver<>)).As(typeof(IItemAncestor<>)).InstancePerLifetimeScope();
-        _serviceRegistrations.Invoke(builder);
+        builder.RegisterServices(_serviceRegistrations);
+        _containerRegistrations.Invoke(builder);
         
         builder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource());
 
