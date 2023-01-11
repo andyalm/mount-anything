@@ -8,11 +8,6 @@ public static class DynamicParametersExtensions
     {
         return CreateDynamicParameters(handlerResolver.HandlerType, handlerParameterInterface);
     }
-    
-    public static object? CreateDynamicParameters(this IDriveHandler driveHandler, Type handlerParameterInterface)
-    {
-        return CreateDynamicParameters(driveHandler.GetType(), handlerParameterInterface);
-    }
 
     private static object? CreateDynamicParameters(Type handlerType, Type handlerParameterInterface)
     {
@@ -28,11 +23,6 @@ public static class DynamicParametersExtensions
     }
 
     public static void SetDynamicParameters(this IPathHandler handler, Type handlerParameterInterface, object? dynamicParameters)
-    {
-        SetDynamicParameters((object)handler, handlerParameterInterface, dynamicParameters);
-    }
-    
-    public static void SetDynamicParameters(this IDriveHandler handler, Type handlerParameterInterface, object? dynamicParameters)
     {
         SetDynamicParameters((object)handler, handlerParameterInterface, dynamicParameters);
     }

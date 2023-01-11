@@ -198,16 +198,13 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
 
     public PSDriveInfo NewDrive(PSDriveInfo drive)
     {
-        WriteDebug($"NewDrive({drive.Name})");
-        var driveHandler = _mountAnythingProvider.GetDriveHandler();
-        driveHandler.SetDynamicParameters(typeof(INewDriveParameters<>), DynamicParameters);
-
-        return driveHandler.NewDrive(drive);
+        WriteDebug($"NewDrive({drive.Name}, {DynamicParameters?.GetType()?.FullName ?? "null"})");
+        return _mountAnythingProvider.NewDrive(drive, DynamicParameters);
     }
 
     public object? NewDriveDynamicParameters()
     {
-        return _mountAnythingProvider.GetDriveHandler().CreateDynamicParameters(typeof(INewDriveParameters<>));
+        return _mountAnythingProvider.CreateNewDriveDynamicParameters();
     }
 
     public PSDriveInfo RemoveDrive(PSDriveInfo drive)
