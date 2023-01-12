@@ -215,9 +215,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
     public Collection<PSDriveInfo> InitializeDefaultDrives()
     {
         var defaultDrives = _mountAnythingProvider
-            .GetDefaultDrives()
-            .Select(defaultDrive => new PSDriveInfo(defaultDrive.Name, Host.ProviderInfo, ItemSeparator.ToString(),
-                defaultDrive.Description, defaultDrive.Credential))
+            .GetDefaultDrives(Host.ProviderInfo)
             .ToList();
 
         return new Collection<PSDriveInfo>(defaultDrives);

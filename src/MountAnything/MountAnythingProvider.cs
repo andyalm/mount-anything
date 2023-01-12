@@ -26,7 +26,7 @@ public abstract class MountAnythingProvider<TDriveParameters> : IMountAnythingPr
     /// when the module for this provider is imported.
     /// </summary>
     /// <returns></returns>
-    public virtual IEnumerable<PSDriveInfo> GetDefaultDrives()
+    public virtual IEnumerable<PSDriveInfo> GetDefaultDrives(ProviderInfo providerInfo)
     {
         yield break;
     }
