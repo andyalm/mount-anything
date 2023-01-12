@@ -13,6 +13,12 @@ public abstract class MountAnythingProvider<TDriveParameters> : IMountAnythingPr
 {
     PSDriveInfo IMountAnythingProvider.NewDrive(PSDriveInfo driveInfo, object? dynamicParameters)
     {
+        // don't call NewDrive for PSDriveInfo subclasses. We can assume those came from GetDefaultDrives, and thus should already be ready to go as-is.
+        if (driveInfo.GetType() != typeof(PSDriveInfo))
+        {
+            return driveInfo;
+        }
+        
         return NewDrive(driveInfo, (TDriveParameters)dynamicParameters!);
     }
     
