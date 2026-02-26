@@ -17,6 +17,15 @@ fi
 echo 'export DOTNET_ROLL_FORWARD=LatestMajor' >> "$CLAUDE_ENV_FILE"
 export DOTNET_ROLL_FORWARD=LatestMajor
 
+# Install PowerShell if not already installed (needed by MountAnything.Hosting.Build targets)
+if ! command -v pwsh &>/dev/null; then
+  wget -q https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb -O /tmp/packages-microsoft-prod.deb
+  dpkg -i /tmp/packages-microsoft-prod.deb
+  apt-get update -qq 2>/dev/null || true
+  apt-get install -y --no-install-recommends powershell
+  rm -f /tmp/packages-microsoft-prod.deb
+fi
+
 # Restore NuGet packages
 cd "$CLAUDE_PROJECT_DIR"
 dotnet restore
