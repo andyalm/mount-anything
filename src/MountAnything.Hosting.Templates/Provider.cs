@@ -307,12 +307,12 @@ public class Provider : NavigationCmdletProvider,
         return ProviderImpl.ClearPropertyDynamicParameters(path, propertyToClear);
     }
 
-    public void GetProperty(string path, Collection<string> providerSpecificPickList)
+    public void GetProperty(string path, Collection<string>? providerSpecificPickList)
     {
         ProviderImpl.GetProperty(path, providerSpecificPickList);
     }
 
-    public object? GetPropertyDynamicParameters(string path, Collection<string> providerSpecificPickList)
+    public object? GetPropertyDynamicParameters(string path, Collection<string>? providerSpecificPickList)
     {
         return ProviderImpl.GetPropertyDynamicParameters(path, providerSpecificPickList);
     }
@@ -356,12 +356,12 @@ public class Provider : NavigationCmdletProvider,
         return ProviderImpl.MovePropertyDynamicParameters(sourcePath, sourceProperty, destinationPath, destinationProperty);
     }
 
-    public void NewProperty(string path, string propertyName, string propertyTypeName, object value)
+    public void NewProperty(string path, string propertyName, string propertyTypeName, object? value)
     {
         ProviderImpl.NewProperty(path, propertyName, propertyTypeName, value);
     }
 
-    public object? NewPropertyDynamicParameters(string path, string propertyName, string propertyTypeName, object value)
+    public object? NewPropertyDynamicParameters(string path, string propertyName, string propertyTypeName, object? value)
     {
         return ProviderImpl.NewPropertyDynamicParameters(path, propertyName, propertyTypeName, value);
     }
@@ -371,9 +371,9 @@ public class Provider : NavigationCmdletProvider,
         ProviderImpl.RemoveProperty(path, propertyName);
     }
 
-    public object? RemovePropertyDynamicParameters(string path, string propertyName)
+    public object RemovePropertyDynamicParameters(string path, string propertyName)
     {
-        return ProviderImpl.RemovePropertyDynamicParameters(path, propertyName);
+        return ProviderImpl.RemovePropertyDynamicParameters(path, propertyName)!;
     }
 
     public void RenameProperty(string path, string sourceProperty, string destinationProperty)

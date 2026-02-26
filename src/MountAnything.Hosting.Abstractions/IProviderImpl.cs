@@ -947,9 +947,9 @@ public interface IProviderImpl
 
     object? ClearPropertyDynamicParameters(string path, Collection<string> propertyToClear);
 
-    void GetProperty(string path, Collection<string> providerSpecificPickList);
+    void GetProperty(string path, Collection<string>? providerSpecificPickList);
 
-    object? GetPropertyDynamicParameters(string path, Collection<string> providerSpecificPickList);
+    object? GetPropertyDynamicParameters(string path, Collection<string>? providerSpecificPickList);
 
     void SetProperty(string path, PSObject propertyValue);
 
@@ -1106,7 +1106,7 @@ public interface IProviderImpl
     /// the user unless the Force property is set to true. An error should be sent to the WriteError method if
     /// the path represents an item that is hidden from the user and Force is set to false.
     /// </remarks>
-    void NewProperty(string path, string propertyName, string propertyTypeName, object value);
+    void NewProperty(string path, string propertyName, string propertyTypeName, object? value);
 
     /// <summary>
     /// Gives the provider an opportunity to attach additional parameters to the
@@ -1136,7 +1136,7 @@ public interface IProviderImpl
       string path,
       string propertyName,
       string propertyTypeName,
-      object value);
+      object? value);
 
     /// <summary>Removes a property on the item specified by the path.</summary>
     /// <param name="path">

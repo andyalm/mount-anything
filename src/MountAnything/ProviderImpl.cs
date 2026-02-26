@@ -568,12 +568,12 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         return GetDynamicParameters(path, typeof(IClearItemPropertiesParameters<>));
     }
 
-    public void GetProperty(string path, Collection<string> providerSpecificPickList)
+    public void GetProperty(string path, Collection<string>? providerSpecificPickList)
     {
         WithPathHandler(path, handler =>
         {
             handler.SetDynamicParameters(typeof(IGetItemPropertiesParameters<>), DynamicParameters);
-            var propertyNames = providerSpecificPickList.ToHashSet();
+            var propertyNames = providerSpecificPickList?.ToHashSet() ?? new HashSet<string>();
             var itemProperties = handler
                 .GetItemProperties(propertyNames, ToFullyQualifiedProviderPath)
                 .WherePropertiesMatch(propertyNames);
@@ -587,7 +587,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         });
     }
 
-    public object? GetPropertyDynamicParameters(string path, Collection<string> providerSpecificPickList)
+    public object? GetPropertyDynamicParameters(string path, Collection<string>? providerSpecificPickList)
     {
         return GetDynamicParameters(path, typeof(IGetItemPropertiesParameters<>));
     }
@@ -640,7 +640,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         return null;
     }
 
-    public void NewProperty(string path, string propertyName, string propertyTypeName, object value)
+    public void NewProperty(string path, string propertyName, string propertyTypeName, object? value)
     {
         WriteDebug($"NewProperty({path}, {propertyName}, {propertyTypeName}, <propertyValue>)");
         WithPathHandler(path, handler =>
@@ -648,7 +648,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
             if (handler is INewItemPropertyHandler newPropertyHandler)
             {
                 handler.SetDynamicParameters(typeof(INewItemPropertyParameters<>), DynamicParameters);
-                newPropertyHandler.NewItemProperty(propertyName, propertyTypeName, value);
+                newPropertyHandler.NewItemProperty(propertyName, propertyTypeName, value!);
                 WritePropertyObject(new Hashtable { [propertyName] = value }, path);
             }
             else
@@ -658,7 +658,7 @@ public class ProviderImpl : IProviderImpl, IPathHandlerContext
         });
     }
 
-    public object? NewPropertyDynamicParameters(string path, string propertyName, string propertyTypeName, object value)
+    public object? NewPropertyDynamicParameters(string path, string propertyName, string propertyTypeName, object? value)
     {
         return GetDynamicParameters(path, typeof(INewItemPropertyParameters<>));
     }
