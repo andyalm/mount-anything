@@ -10,7 +10,7 @@
     </PropertyGroup>
   </Target>
   
-  <Target Name="BuildHost" AfterTargets="Build" DependsOnTargets="_ComputeMountAnythingProperties">
+  <Target Name="BuildHost" AfterTargets="Build" DependsOnTargets="_ComputeMountAnythingProperties" Condition="'$(TargetFramework)' != ''">
     <StageMountAnythingHostProject
       PowershellProviderName="$(PowershellProviderName)"
       ImplAssemblyName="$(AssemblyName)"
@@ -20,7 +20,7 @@
     <ItemGroup>
       <HostProject Include="$(StagingDir)\$(HostAssemblyName).csproj" />
     </ItemGroup>
-    <MSBuild Projects="@(HostProject)" Targets="Restore;Build" Properties="HostingAbstractionsProjectLocation=$(HostingAbstractionsProjectLocation);TargetFramework=$(TargetFramework)" />
+    <MSBuild Projects="@(HostProject)" Targets="Restore;Build" Properties="HostingAbstractionsProjectLocation=$(HostingAbstractionsProjectLocation);TargetFramework=$(TargetFramework);RestoreRecursive=false" />
     
     <ItemGroup>
       <HostBin Include="$(StagingDir)\bin\$(Configuration)\$(TargetFramework)\$(HostAssemblyName).dll;$(StagingDir)\bin\$(Configuration)\$(TargetFramework)\$(HostAssemblyName).pdb;$(StagingDir)\bin\$(Configuration)\$(TargetFramework)\$(AbstractionsAssemblyName).dll" />
@@ -71,7 +71,7 @@
       WorkingDirectory="$(ModuleOutputDir)" />
   </Target>
   
-  <Target Name="PublishModule" DependsOnTargets="_ComputeMountAnythingProperties;BuildHost" AfterTargets="Publish">
+  <Target Name="PublishModule" DependsOnTargets="_ComputeMountAnythingProperties;BuildHost" AfterTargets="Publish" Condition="'$(TargetFramework)' != ''">
     <!-- Clean out existing publish directory because we are going to re-populate it with the PS module files only -->
     <RemoveDir Directories="$(PublishDir)" />
     
