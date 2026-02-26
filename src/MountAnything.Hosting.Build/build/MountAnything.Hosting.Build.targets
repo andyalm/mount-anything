@@ -20,10 +20,10 @@
     <ItemGroup>
       <HostProject Include="$(StagingDir)\$(HostAssemblyName).csproj" />
     </ItemGroup>
-    <MSBuild Projects="@(HostProject)" Targets="Restore;Build" Properties="HostingAbstractionsProjectLocation=$(HostingAbstractionsProjectLocation)" />
+    <MSBuild Projects="@(HostProject)" Targets="Restore;Build" Properties="HostingAbstractionsProjectLocation=$(HostingAbstractionsProjectLocation);TargetFramework=$(TargetFramework)" />
     
     <ItemGroup>
-      <HostBin Include="$(StagingDir)\bin\$(Configuration)\net6.0\$(HostAssemblyName).dll;$(StagingDir)\bin\$(Configuration)\net6.0\$(HostAssemblyName).pdb;$(StagingDir)\bin\$(Configuration)\net6.0\$(AbstractionsAssemblyName).dll" />
+      <HostBin Include="$(StagingDir)\bin\$(Configuration)\$(TargetFramework)\$(HostAssemblyName).dll;$(StagingDir)\bin\$(Configuration)\$(TargetFramework)\$(HostAssemblyName).pdb;$(StagingDir)\bin\$(Configuration)\$(TargetFramework)\$(AbstractionsAssemblyName).dll" />
     </ItemGroup>
     <Copy SourceFiles="@(HostBin)" DestinationFiles="$(ModuleOutputDir)\%(RecursiveDir)%(Filename)%(Extension)" />
     
