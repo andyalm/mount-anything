@@ -13,7 +13,7 @@ Create a new class library project and reference the two required packages:
 <PackageReference Include="MountAnything.Hosting.Build" Version="*" />
 ```
 
-`MountAnything` is the core framework. `MountAnything.Hosting.Build` is an MSBuild integration that auto-generates the PowerShell module files at build time.
+`MountAnything` is the core framework. `MountAnything.Hosting.Build` is an MSBuild integration that auto-generates the PowerShell module files at build time. The main project should reference both `MountAnything.Hosting.Build` and `MountAnything`. If you want to create supporting class libraries, they can just reference `MountAnything`.
 
 ## 2. Implement `IMountAnythingProvider`
 
@@ -142,12 +142,12 @@ Build the project:
 dotnet build
 ```
 
-The `MountAnything.Hosting.Build` package generates a PowerShell module in `bin/Debug/net6.0/Module/` (or whichever target framework you're using). This includes a `.psd1` manifest and the compiled provider DLL.
+The `MountAnything.Hosting.Build` package generates a PowerShell module in `bin/Debug/net8.0/Module/` (or whichever target framework you're using). This includes a `.psd1` manifest and the compiled provider DLL.
 
 Import and test the module:
 
 ```powershell
-Import-Module ./bin/Debug/net6.0/Module/MountPowershell.psd1
+Import-Module ./bin/Debug/net8.0/Module/MountPowershell.psd1
 
 # If you implemented GetDefaultDrives, the drive is already mounted:
 cd pwsh:

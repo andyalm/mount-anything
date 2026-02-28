@@ -88,10 +88,7 @@ public class ClusterItem : Item<Cluster>
     public override bool IsContainer => true;
 
     [ItemProperty]
-    public int RunningTaskCount => UnderlyingObject.RunningTasksCount;
-
-    [ItemProperty("Status")]
-    public string ClusterStatus => UnderlyingObject.Status;
+    public bool HasRunningTasks => UnderlyingObject.RunningTasksCount > 0;
 }
 ```
 
@@ -152,10 +149,10 @@ Both `Links` and `LinkPaths` are surfaced through a `Links` property on the pipe
 
 ## Aliases
 
-Items can declare alternative names that resolve to the same item. This is useful when resources have both a human-friendly name and a technical ID:
+Items can declare alternative names that resolve to the same item. This is useful when resources have more than one way of uniquely identifying them:
 
 ```csharp
-public override IEnumerable<string> Aliases => new[] { UnderlyingObject.Arn };
+public override IEnumerable<string> Aliases => new[] { UnderlyingObject.AnotherId };
 ```
 
 The cache stores entries for all aliases, so users can navigate by either name.

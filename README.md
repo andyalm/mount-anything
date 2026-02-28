@@ -1,8 +1,14 @@
 # MountAnything
 
-A framework for building PowerShell providers that expose arbitrary APIs as hierarchical virtual filesystems. Navigate any API with familiar commands like `cd`, `ls`, `Get-Item`, and `Get-ChildItem`.
+A framework for building PowerShell providers that expose arbitrary APIs as hierarchical virtual filesystems. Navigate any API with familiar commands like `cd`, `ls`, `Get-Item`, and `Get-Content`.
 
-The primary consumer of this framework is [MountAws](https://github.com/andyalm/mount-aws), which exposes AWS services as a virtual drive.
+Some example providers built with this framework include:
+
+- [MountAws](https://github.com/andyalm/mount-aws) - AWS services
+- [MountGitlab](https://github.com/andyalm/mount-gitlab) - Gitlab
+- [MountConsul](https://github.com/andyalm/mount-consul) - Consul KV store
+- [MountVault](https://github.com/andyalm/mount-vault) - HashiCorp Vault
+- [MountArtifactory](https://github.com/andyalm/mount-artifactory) - JFrog Artifactory
 
 ## What it looks like
 
@@ -13,10 +19,6 @@ ls
 
 # Inspect a specific resource
 Get-Item my-service
-
-# Or navigate PowerShell itself (included example project)
-cd pwsh:\modules\Microsoft.PowerShell.Utility
-ls   # lists commands in the module
 ```
 
 ## Quick start
