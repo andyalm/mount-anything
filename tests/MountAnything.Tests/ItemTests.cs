@@ -9,7 +9,7 @@ namespace MountAnything.Tests;
 public class ItemTests
 {
     [Fact]
-    public void FirstTypeNameIsOnlyTypeOnFinalPSObject()
+    public void ClassTypeNameIsOnlyTypeOnFinalPSObject()
     {
         var underlyingObject = new PSObject();
         underlyingObject.TypeNames.Clear();
@@ -20,7 +20,7 @@ public class ItemTests
         var pipelineObject = item.ToPipelineObject(p => p.ToString());
 
         pipelineObject.TypeNames.Should().HaveCount(1);
-        pipelineObject.TypeNames.Single().Should().Be("MyType");
+        pipelineObject.TypeNames.Single().Should().Be(typeof(TestItem).FullName);
     }
 
     [Fact]
